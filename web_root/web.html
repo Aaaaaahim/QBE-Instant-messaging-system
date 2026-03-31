@@ -1,0 +1,1051 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QBE - 即时通讯平台</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" referrerpolicy="no-referrer">
+    <script>
+      (function () {
+        try {
+          var raw = localStorage.getItem('qbe.ui.settings');
+          var s = raw ? JSON.parse(raw) : null;
+          if (!s) return;
+          var root = document.documentElement;
+          if (s.cursor_fx) root.classList.add('cursor-fx-on');
+          if (s.bg_motion) root.classList.add('bg-motion-on');
+        } catch (_) {}
+      })();
+    </script>
+    <style>
+        /* Custom cursor is provided by qbe_cursor.css */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg0: #0b1220;
+            --bg1: #0f1a2f;
+            --card: rgba(255, 255, 255, 0.92);
+            --card2: rgba(255, 255, 255, 0.84);
+            --text: #101828;
+            --muted: #475467;
+            --brand: #1d9b78;
+            --brand2: #0ea66a;
+            --ring: rgba(29, 155, 120, 0.35);
+            --shadow: 0 18px 45px rgba(16, 24, 40, 0.18);
+            --shadow2: 0 10px 26px rgba(16, 24, 40, 0.14);
+            --border: rgba(16, 24, 40, 0.10);
+            --sidebar-w: 260px;
+            --sidebar-collapsed-w: 76px;
+            --radius: 14px;
+        }
+        
+        body {
+            font-family: 'Manrope', system-ui, -apple-system, 'Segoe UI', Tahoma, Arial, sans-serif;
+            color: var(--text);
+            line-height: 1.55;
+            min-height: 100vh;
+            background:
+                radial-gradient(1200px 800px at 12% 10%, rgba(29, 155, 120, 0.24), transparent 58%),
+                radial-gradient(900px 600px at 86% 18%, rgba(56, 189, 248, 0.18), transparent 55%),
+                radial-gradient(900px 700px at 70% 90%, rgba(34, 197, 94, 0.14), transparent 60%),
+                linear-gradient(180deg, var(--bg0), var(--bg1));
+        }
+
+        a { color: inherit; }
+
+        .app {
+            min-height: 100vh;
+            display: flex;
+        }
+
+        /* Backdrop for mobile sidebar */
+        .backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.44);
+            backdrop-filter: blur(6px);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+            z-index: 900;
+        }
+
+        body.sidebar-open .backdrop {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 800;
+            color: white;
+            padding: 1.1rem 1.4rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            background:
+                radial-gradient(900px 200px at 25% 0%, rgba(255, 255, 255, 0.16), transparent 60%),
+                linear-gradient(135deg, rgba(29, 155, 120, 0.98), rgba(14, 166, 106, 0.92));
+            box-shadow: 0 10px 30px rgba(15, 26, 47, 0.35);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+        }
+        
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        #sidebar-toggle {
+            width: 44px;
+            height: 44px;
+            display: inline-grid;
+            place-items: center;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            color: white;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: transform 0.15s ease, background 0.15s ease;
+        }
+
+        #sidebar-toggle:active {
+            transform: scale(0.98);
+        }
+        
+        .header-title {
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .header-title h1 {
+            margin: 0;
+            font-size: 1.45rem;
+            letter-spacing: 0.2px;
+        }
+        
+        .header-title p {
+            margin: 0.2rem 0 0;
+            font-size: 0.95rem;
+            opacity: 0.88;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 0.8rem;
+            flex: 1;
+            min-width: 220px;
+        }
+
+        .session-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.55rem;
+            padding: 0.55rem 0.75rem;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            color: rgba(255, 255, 255, 0.92);
+            font-weight: 600;
+            max-width: 260px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .session-pill i {
+            opacity: 0.95;
+        }
+
+        .actions {
+            position: relative;
+            display: inline-flex;
+            justify-content: flex-end;
+        }
+
+        .actions-btn {
+            height: 44px;
+            padding: 0 0.9rem;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            background: rgba(255, 255, 255, 0.12);
+            color: white;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.6rem;
+            font-weight: 700;
+            letter-spacing: 0.1px;
+            transition: transform 0.15s ease, background 0.15s ease;
+        }
+
+        .actions-btn:active {
+            transform: scale(0.98);
+        }
+
+        .actions-panel {
+            position: absolute;
+            right: 0;
+            top: calc(100% + 10px);
+            width: min(92vw, 360px);
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.92);
+            border: 1px solid rgba(16, 24, 40, 0.12);
+            box-shadow: 0 18px 55px rgba(16, 24, 40, 0.24);
+            overflow: hidden;
+            opacity: 0;
+            transform: translateY(-6px);
+            pointer-events: none;
+            transition: opacity 0.16s ease, transform 0.16s ease;
+        }
+
+        body.actions-open .actions-panel {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+        }
+
+        .actions-head {
+            padding: 0.95rem 1rem;
+            background:
+                radial-gradient(600px 220px at 20% 0%, rgba(29, 155, 120, 0.16), transparent 65%),
+                linear-gradient(180deg, rgba(16, 24, 40, 0.02), rgba(16, 24, 40, 0.00));
+        }
+
+        .actions-userline {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.8rem;
+        }
+
+        .actions-user {
+            display: flex;
+            flex-direction: column;
+            gap: 0.2rem;
+            min-width: 0;
+        }
+
+        .actions-user strong {
+            font-size: 0.95rem;
+            color: #0b3a33;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .actions-user span {
+            font-size: 0.82rem;
+            color: #667085;
+        }
+
+        .actions-auth {
+            display: inline-flex;
+            gap: 0.5rem;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .chip {
+            padding: 0.48rem 0.65rem;
+            border-radius: 999px;
+            border: 1px solid rgba(16, 24, 40, 0.12);
+            background: rgba(255, 255, 255, 0.75);
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 0.88rem;
+            text-decoration: none;
+            color: #344054;
+            transition: transform 0.15s ease, background 0.15s ease;
+        }
+
+        .chip:hover {
+            background: rgba(29, 155, 120, 0.10);
+            transform: translateY(-1px);
+        }
+
+        .chip.primary {
+            background: linear-gradient(135deg, rgba(29, 155, 120, 0.95), rgba(14, 166, 106, 0.88));
+            border-color: rgba(29, 155, 120, 0.40);
+            color: white;
+        }
+
+        .chip.primary:hover {
+            background: linear-gradient(135deg, rgba(29, 155, 120, 1.00), rgba(14, 166, 106, 0.92));
+        }
+
+        .actions-list {
+            padding: 0.35rem;
+            display: grid;
+            gap: 0.25rem;
+        }
+
+        .actions-item {
+            width: 100%;
+            text-align: left;
+            padding: 0.8rem 0.85rem;
+            border-radius: 14px;
+            border: 1px solid transparent;
+            background: transparent;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            color: #344054;
+            font-weight: 700;
+            text-decoration: none;
+        }
+
+        .actions-item i {
+            width: 18px;
+            text-align: center;
+            opacity: 0.9;
+        }
+
+        .actions-item:hover {
+            background: rgba(16, 24, 40, 0.04);
+            border-color: rgba(16, 24, 40, 0.06);
+        }
+
+        .actions-divider {
+            height: 1px;
+            background: rgba(16, 24, 40, 0.08);
+            margin: 0.25rem 0.35rem;
+        }
+        
+        .sidebar {
+            width: var(--sidebar-w);
+            color: rgba(255, 255, 255, 0.92);
+            padding: 1.1rem 1rem;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            background:
+                radial-gradient(900px 650px at 0% 0%, rgba(29, 155, 120, 0.22), transparent 55%),
+                linear-gradient(180deg, rgba(19, 31, 57, 0.96), rgba(12, 19, 34, 0.96));
+            border-right: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 12px 0 35px rgba(0, 0, 0, 0.20);
+            transition: width 0.22s ease, transform 0.22s ease;
+            z-index: 1000;
+            overflow: hidden;
+        }
+
+        body.sidebar-collapsed .sidebar {
+            width: var(--sidebar-collapsed-w);
+        }
+
+        .sidebar-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
+            padding: 0.35rem 0.35rem 0.9rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            margin-bottom: 0.9rem;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 0.65rem;
+            min-width: 0;
+        }
+
+        .brand-badge {
+            width: 38px;
+            height: 38px;
+            border-radius: 12px;
+            display: grid;
+            place-items: center;
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+        }
+
+        .brand-badge i {
+            font-size: 1rem;
+        }
+
+        .brand-text {
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+
+        .brand-text strong {
+            font-size: 0.95rem;
+            letter-spacing: 0.2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .brand-text span {
+            font-size: 0.78rem;
+            opacity: 0.78;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .sidebar-toggle-mini {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.10);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            color: rgba(255, 255, 255, 0.92);
+            cursor: pointer;
+            display: grid;
+            place-items: center;
+            transition: transform 0.15s ease, background 0.15s ease;
+        }
+
+        .sidebar-toggle-mini:active {
+            transform: scale(0.98);
+        }
+        
+        .sidebar h2 {
+            margin: 0;
+            padding: 0.25rem 0.65rem 0.8rem;
+            color: rgba(255, 255, 255, 0.88);
+            font-size: 0.85rem;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            opacity: 0.85;
+        }
+        
+        .sidebar nav a {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            color: rgba(255, 255, 255, 0.90);
+            text-decoration: none;
+            padding: 0.8rem 0.85rem;
+            margin-bottom: 0.5rem;
+            border-radius: 12px;
+            transition: background-color 0.15s ease, transform 0.15s ease, border-color 0.15s ease;
+            border: 1px solid transparent;
+        }
+
+        .sidebar nav a i {
+            width: 18px;
+            text-align: center;
+            font-size: 1rem;
+            opacity: 0.95;
+        }
+
+        .sidebar nav a span {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .sidebar nav a:hover {
+            background-color: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.10);
+            transform: translateY(-1px);
+        }
+        
+        .sidebar nav a.active {
+            background: linear-gradient(135deg, rgba(29, 155, 120, 0.95), rgba(14, 166, 106, 0.85));
+            border-color: rgba(255, 255, 255, 0.16);
+        }
+        
+        .content {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 1.6rem;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .section {
+            background: var(--card);
+            margin-bottom: 1.2rem;
+            padding: 1.4rem;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow2);
+            border: 1px solid var(--border);
+            transition: transform 0.18s ease, opacity 0.18s ease, box-shadow 0.18s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .section:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+        
+        .section.hidden {
+            display: none;
+        }
+        
+        h2 {
+            color: #0f766e;
+            margin-top: 0;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        h2 i {
+            opacity: 0.9;
+        }
+
+        h3 {
+            margin: 0.8rem 0 0.6rem;
+            color: #0b3a33;
+        }
+
+        ul {
+            padding-left: 1.1rem;
+            color: var(--muted);
+        }
+
+        li {
+            margin: 0.4rem 0;
+        }
+        
+        .form-group {
+            margin-bottom: 1.2rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid rgba(16, 24, 40, 0.16);
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: border-color 0.15s ease, box-shadow 0.15s ease;
+            background: rgba(255, 255, 255, 0.85);
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: rgba(29, 155, 120, 0.70);
+            box-shadow: 0 0 0 4px var(--ring);
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, var(--brand), var(--brand2));
+            color: white;
+            border: none;
+            padding: 0.8rem 1.2rem;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: transform 0.15s ease, filter 0.15s ease;
+            box-shadow: 0 10px 22px rgba(29, 155, 120, 0.26);
+        }
+        
+        .btn:hover {
+            filter: brightness(1.02);
+            transform: translateY(-1px);
+        }
+
+        .btn-ghost {
+            background: rgba(255,255,255,0.86);
+            color: #0f766e;
+            border: 1px solid rgba(29,155,120,0.35);
+            box-shadow: none;
+        }
+
+        .btn-ghost:hover {
+            background: rgba(255,255,255,0.92);
+        }
+
+        .cta-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            align-items: center;
+        }
+        
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid rgba(16, 24, 40, 0.10);
+            margin-bottom: 1.5rem;
+            gap: 0.25rem;
+        }
+        
+        .tab {
+            padding: 0.8rem 1.2rem;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            color: #667085;
+            border-bottom: 2px solid transparent;
+            transition: color 0.15s ease, border-color 0.15s ease;
+            font-weight: 600;
+        }
+        
+        .tab:hover {
+            color: #344054;
+        }
+        
+        .tab.active {
+            color: #0f766e;
+            border-bottom-color: #0f766e;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .friend-links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.8rem;
+        }
+        
+        .friend-links a {
+            background: rgba(255, 255, 255, 0.85);
+            padding: 0.6rem 1rem;
+            border-radius: 999px;
+            text-decoration: none;
+            color: #344054;
+            border: 1px solid rgba(16, 24, 40, 0.12);
+            transition: transform 0.15s ease, background 0.15s ease;
+        }
+        
+        .friend-links a:hover {
+            background: rgba(29, 155, 120, 0.10);
+            transform: translateY(-1px);
+        }
+        
+        footer {
+            text-align: center;
+            padding: 1.2rem;
+            color: rgba(255, 255, 255, 0.88);
+            margin-top: 0;
+            border-top: 1px solid rgba(255, 255, 255, 0.10);
+            background: rgba(12, 19, 34, 0.55);
+        }
+
+        /* Collapsed sidebar content behavior */
+        body.sidebar-collapsed .brand-text,
+        body.sidebar-collapsed .sidebar h2,
+        body.sidebar-collapsed .sidebar nav a span {
+            opacity: 0;
+            transform: translateX(-6px);
+            transition: opacity 0.12s ease, transform 0.12s ease;
+            pointer-events: none;
+        }
+
+        body.sidebar-collapsed .sidebar nav a {
+            justify-content: center;
+            padding: 0.85rem 0.75rem;
+        }
+
+        body.sidebar-collapsed .sidebar nav a i {
+            width: auto;
+            font-size: 1.05rem;
+        }
+
+        body.sidebar-collapsed .sidebar-top {
+            justify-content: center;
+        }
+
+        body.sidebar-collapsed .sidebar-toggle-mini {
+            display: none;
+        }
+        
+        @media (max-width: 768px) {
+            header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .header-left {
+                width: 100%;
+                justify-content: space-between;
+            }
+            
+            .header-title {
+                min-width: auto;
+            }
+
+            .header-right {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .sidebar {
+                position: fixed;
+                left: 0;
+                top: 0;
+                transform: translateX(-102%);
+                width: min(86vw, 320px);
+            }
+
+            body.sidebar-open .sidebar {
+                transform: translateX(0);
+            }
+
+            body.sidebar-collapsed .sidebar {
+                width: min(86vw, 320px);
+            }
+
+            .main-content {
+                padding: 1.2rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .header-title h1 {
+                font-size: 1.5rem;
+            }
+
+            .sidebar {
+                width: min(92vw, 340px);
+            }
+
+            .main-content {
+                padding: 1rem;
+            }
+        }
+    </style>
+  </head>
+<body>
+    <div class="backdrop" id="backdrop" aria-hidden="true"></div>
+    <div class="app" id="app">
+        <aside class="sidebar" id="sidebar" aria-label="侧边导航">
+            <div class="sidebar-top">
+                <div class="brand" title="QBE">
+                    <div class="brand-badge" aria-hidden="true"><i class="fa-solid fa-bolt"></i></div>
+                    <div class="brand-text">
+                        <strong>QBE</strong>
+                        <span>即时通讯平台</span>
+                    </div>
+                </div>
+                <button class="sidebar-toggle-mini" id="sidebar-toggle-mini" title="收起/展开" aria-label="收起/展开侧边栏">
+                    <i class="fa-solid fa-angles-left"></i>
+                </button>
+            </div>
+
+            <h2>导航菜单</h2>
+            <nav>
+                <a href="#home" class="nav-link" data-section="home"><i class="fa-solid fa-house"></i><span>首页</span></a>
+                <a href="login.html#login" class="nav-link" data-section="login"><i class="fa-solid fa-user"></i><span>登录/注册</span></a>
+                <a href="#intro" class="nav-link" data-section="intro"><i class="fa-solid fa-circle-info"></i><span>平台介绍</span></a>
+                <a href="#friends" class="nav-link" data-section="friends"><i class="fa-solid fa-link"></i><span>友情链接</span></a>
+            </nav>
+        </aside>
+
+        <div class="content">
+            <header>
+                <div class="header-left">
+                    <button id="sidebar-toggle" aria-label="打开侧边栏"><i class="fa-solid fa-bars"></i></button>
+                    <div class="header-title">
+                        <h1>QBE - 即时通讯平台</h1>
+                        <p>Quicker, Better, More Effective</p>
+                    </div>
+                </div>
+                <div class="header-right">
+                    <div class="session-pill" id="session-pill" hidden><i class="fa-solid fa-user"></i><span id="session-name"></span></div>
+                    <div class="actions" id="actions">
+                        <button class="actions-btn" id="actions-toggle" type="button" aria-haspopup="true" aria-expanded="false">
+                            <i class="fa-solid fa-grid-2"></i>
+                            常用功能
+                            <i class="fa-solid fa-chevron-down" style="opacity:0.9"></i>
+                        </button>
+                        <div class="actions-panel" id="actions-panel" role="menu" aria-label="常用功能">
+                            <div class="actions-head">
+                                <div class="actions-userline">
+                                    <div class="actions-user">
+                                        <strong id="actions-user-name">未登录</strong>
+                                        <span id="actions-user-sub">登录后可保存偏好设置</span>
+                                    </div>
+                                    <div class="actions-auth" id="actions-auth">
+                                        <a class="chip primary" id="actions-login" href="login.html#login">登录</a>
+                                        <a class="chip" id="actions-register" href="login.html#register">注册</a>
+                                        <button class="chip" id="actions-logout" type="button" hidden>退出</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="actions-divider"></div>
+                            <div class="actions-list">
+                                <button class="actions-item" type="button" data-action="toggle-sidebar"><i class="fa-solid fa-angles-left"></i>收起/展开侧边栏</button>
+                                <a class="actions-item" href="#home" data-scroll="#home"><i class="fa-solid fa-house"></i>跳转：首页</a>
+                                <a class="actions-item" href="#intro" data-scroll="#intro"><i class="fa-solid fa-circle-info"></i>跳转：平台介绍</a>
+                                <a class="actions-item" href="#friends" data-scroll="#friends"><i class="fa-solid fa-link"></i>跳转：友情链接</a>
+                                <a class="actions-item" href="login.html#login"><i class="fa-solid fa-right-to-bracket"></i>登录/注册页面</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <main class="main-content" id="main-content">
+                <div class="container">
+            <!-- 首页部分 -->
+            <section id="home" class="section">
+                <h2><i class="fas fa-home"></i> 首页</h2>
+                <p>欢迎使用QBE即时通讯平台！这里是一个快速、稳定、高效的通讯解决方案。</p>
+                <p>我们致力于为用户提供最佳的通讯体验，支持多平台使用。</p>
+            </section>
+
+            <!-- 登录/注册部分 -->
+            <section id="login" class="section">
+                <h2><i class="fas fa-user"></i> 登录 / 注册</h2>
+                <p style="color: var(--muted); margin-bottom: 1rem;">为了让首页更清爽，登录/注册已独立到专用页面。</p>
+                <div class="cta-row">
+                    <a class="btn" href="login.html#login" style="text-decoration:none; display:inline-flex; align-items:center; gap:0.6rem;"><i class="fa-solid fa-right-to-bracket"></i>前往登录</a>
+                    <a class="btn btn-ghost" href="login.html#register" style="text-decoration:none; display:inline-flex; align-items:center; gap:0.6rem;"><i class="fa-solid fa-user-plus"></i>前往注册</a>
+                </div>
+            </section>
+
+            <!-- 平台介绍 -->
+            <section id="intro" class="section">
+                <h2><i class="fas fa-info-circle"></i> 平台介绍</h2>
+                <p>QBE 是一款基于 B/S 架构的即时通讯软件，旨在提供更快速、更稳定、更高效的通讯体验。我们支持文字、语音、视频等多种通讯方式，并提供丰富的插件和扩展功能。</p>
+                <h3>主要特色</h3>
+                <ul>
+                    <li><i class="fas fa-desktop"></i> 跨平台支持：Windows、macOS、Linux、Web 浏览器均可使用</li>
+                    <li><i class="fas fa-shield-alt"></i> 高安全性：端到端加密，保障通讯隐私</li>
+                    <li><i class="fas fa-bolt"></i> 低延迟：采用先进的传输协议，确保消息实时送达</li>
+                    <li><i class="fas fa-tools"></i> 丰富功能：群聊、文件传输、屏幕共享、机器人等</li>
+                </ul>
+            </section>
+
+            <!-- 友情链接 -->
+            <section id="friends" class="section">
+                <h2><i class="fas fa-link"></i> 友情链接</h2>
+                <div class="friend-links">
+                    <a href="https://www.example.com" target="_blank">示例网站</a>
+                    <a href="https://www.github.com" target="_blank">GitHub</a>
+                    <a href="https://www.stackoverflow.com" target="_blank">Stack Overflow</a>
+                    <a href="https://www.w3schools.com" target="_blank">W3Schools</a>
+                    <a href="https://www.mozilla.org" target="_blank">Mozilla</a>
+                </div>
+            </section>
+                </div>
+            </main>
+
+            <footer>
+                <p>© 2026 QBE 即时通讯平台 保留所有权利</p>
+            </footer>
+        </div>
+    </div>
+
+    <script>
+        const STORAGE_KEY = 'qbe.sidebar.collapsed';
+        const SESSION_KEY = 'qbe.session';
+
+        function isMobileLayout() {
+            return window.matchMedia('(max-width: 768px)').matches;
+        }
+
+        function setCollapsed(collapsed) {
+            document.body.classList.toggle('sidebar-collapsed', collapsed);
+            try {
+                localStorage.setItem(STORAGE_KEY, collapsed ? '1' : '0');
+            } catch (_) {}
+        }
+
+        function setMobileOpen(open) {
+            document.body.classList.toggle('sidebar-open', open);
+        }
+
+        function toggleSidebar() {
+            if (isMobileLayout()) {
+                setMobileOpen(!document.body.classList.contains('sidebar-open'));
+                return;
+            }
+            setCollapsed(!document.body.classList.contains('sidebar-collapsed'));
+        }
+
+        // 侧边栏切换功能（桌面：收缩到窄栏；移动端：抽屉）
+        document.getElementById('sidebar-toggle').addEventListener('click', toggleSidebar);
+        document.getElementById('sidebar-toggle-mini').addEventListener('click', toggleSidebar);
+
+        // 点击遮罩关闭（移动端）
+        document.getElementById('backdrop').addEventListener('click', function() {
+            setMobileOpen(false);
+        });
+
+        function getSession() {
+            try {
+                const raw = localStorage.getItem(SESSION_KEY);
+                return raw ? JSON.parse(raw) : null;
+            } catch (_) {
+                return null;
+            }
+        }
+
+        function clearSession() {
+            try { localStorage.removeItem(SESSION_KEY); } catch (_) {}
+        }
+
+        function updateSessionUI() {
+            const s = getSession();
+            const pill = document.getElementById('session-pill');
+            const pillName = document.getElementById('session-name');
+            const userName = document.getElementById('actions-user-name');
+            const userSub = document.getElementById('actions-user-sub');
+            const btnLogin = document.getElementById('actions-login');
+            const btnRegister = document.getElementById('actions-register');
+            const btnLogout = document.getElementById('actions-logout');
+
+            const username = (s && (s.username || s.name)) ? String(s.username || s.name) : '';
+            const uid = (s && (s.uid !== undefined && s.uid !== null)) ? String(s.uid) : '';
+            const email = (s && s.email) ? String(s.email) : '';
+
+            if (username) {
+                pill.hidden = false;
+                pillName.textContent = username;
+                userName.textContent = username;
+                userSub.textContent = [uid ? ('UID ' + uid) : '', email].filter(Boolean).join(' · ') || '已登录';
+                btnLogin.hidden = true;
+                btnRegister.hidden = true;
+                btnLogout.hidden = false;
+            } else {
+                pill.hidden = true;
+                pillName.textContent = '';
+                userName.textContent = '未登录';
+                userSub.textContent = '登录后可保存偏好设置';
+                btnLogin.hidden = false;
+                btnRegister.hidden = false;
+                btnLogout.hidden = true;
+            }
+        }
+
+        function setActionsOpen(open) {
+            document.body.classList.toggle('actions-open', open);
+            const t = document.getElementById('actions-toggle');
+            if (t) t.setAttribute('aria-expanded', open ? 'true' : 'false');
+        }
+
+        function isActionsOpen() {
+            return document.body.classList.contains('actions-open');
+        }
+
+        document.getElementById('actions-toggle').addEventListener('click', function(e) {
+            e.stopPropagation();
+            setActionsOpen(!isActionsOpen());
+        });
+
+        document.getElementById('actions-panel').addEventListener('click', function(e) {
+            // Prevent outside-click handler from closing immediately
+            e.stopPropagation();
+        });
+
+        document.addEventListener('click', function() {
+            if (isActionsOpen()) setActionsOpen(false);
+        });
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && isActionsOpen()) setActionsOpen(false);
+        });
+
+        document.querySelectorAll('[data-scroll]').forEach(a => {
+            a.addEventListener('click', function(e) {
+                e.preventDefault();
+                const sel = this.getAttribute('data-scroll');
+                const el = sel ? document.querySelector(sel) : null;
+                if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                setActionsOpen(false);
+            });
+        });
+
+        document.querySelectorAll('[data-action="toggle-sidebar"]').forEach(btn => {
+            btn.addEventListener('click', function() {
+                toggleSidebar();
+                setActionsOpen(false);
+            });
+        });
+
+        document.getElementById('actions-logout').addEventListener('click', function() {
+            clearSession();
+            updateSessionUI();
+            setActionsOpen(false);
+        });
+
+        // 导航链接点击效果
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                // External links should keep default behavior
+                if (this.getAttribute('href') && this.getAttribute('href').indexOf('login.html') === 0) return;
+
+                // 移除所有活动状态
+                document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+                // 添加当前链接活动状态
+                this.classList.add('active');
+                
+                // 在移动端自动收起侧边栏
+                if (isMobileLayout()) setMobileOpen(false);
+            });
+        });
+
+        // 页面加载时设置第一个导航链接为活动状态
+        document.addEventListener('DOMContentLoaded', function() {
+            // Restore desktop collapsed state
+            let collapsed = false;
+            try {
+                collapsed = localStorage.getItem(STORAGE_KEY) === '1';
+            } catch (_) {}
+            if (!isMobileLayout()) setCollapsed(collapsed);
+
+            updateSessionUI();
+
+            const firstLink = document.querySelector('.nav-link');
+            if (firstLink) {
+                firstLink.classList.add('active');
+            }
+        });
+
+        // Ensure state stays consistent across resizes
+        window.addEventListener('resize', function() {
+            if (isMobileLayout()) {
+                // Mobile uses drawer; don't keep collapsed rail
+                document.body.classList.remove('sidebar-collapsed');
+            } else {
+                // Desktop shouldn't keep drawer open
+                document.body.classList.remove('sidebar-open');
+                let collapsed = false;
+                try {
+                    collapsed = localStorage.getItem(STORAGE_KEY) === '1';
+                } catch (_) {}
+                setCollapsed(collapsed);
+            }
+        });
+    </script>
+</body>
+</html>
+    <link rel="stylesheet" href="qbe_cursor.css">
+    <script src="qbe_cursor.js" defer></script>
+    <script src="qbe_ocean.js" defer></script>
+    <link rel="stylesheet" href="qbe_ocean.css">

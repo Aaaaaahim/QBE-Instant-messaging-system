@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QBE - 聊天</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💬</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" referrerpolicy="no-referrer">
+    <link rel="stylesheet" href="client_connect.css">
+    <link rel="stylesheet" href="qbe_cursor.css">
+    <link rel="stylesheet" href="qbe_ocean.css">
+    <script>
+      (function () {
+        try {
+          var raw = localStorage.getItem('qbe.ui.settings');
+          var s = raw ? JSON.parse(raw) : null;
+          if (!s) return;
+          var root = document.documentElement;
+          if (s.cursor_fx) root.classList.add('cursor-fx-on');
+          if (s.bg_motion) root.classList.add('bg-motion-on');
+        } catch (_) {}
+      })();
+    </script>
+    <script src="qbe_cursor.js" defer></script>
+    <script src="qbe_ocean.js" defer></script>
+  </head>
+<body>
+    <div class="bg-noise" aria-hidden="true"></div>
+
+    <div class="mobile-bar" aria-label="移动端导航">
+        <button class="icon-btn" id="btn-drawer" type="button" aria-label="打开菜单"><i class="fa-solid fa-bars"></i></button>
+        <div class="mobile-title">QBE Chat</div>
+        <a class="icon-btn" href="login.html" aria-label="返回登录"><i class="fa-solid fa-arrow-left"></i></a>
+    </div>
+
+    <div class="drawer" id="drawer" aria-hidden="true">
+        <div class="backdrop" id="drawer-backdrop"></div>
+    </div>
+
+    <div class="app" id="app" role="application" aria-label="聊天界面">
+        <aside class="panel side" id="sidebar" data-collapsed="false" aria-label="联系人列表">
+            <div class="side-top">
+                <div class="me" title="个人头像">
+                    <a class="avatar-link" href="client.html" aria-label="进入个人资料">
+                        <div class="avatar" aria-hidden="true"><i class="fa-solid fa-user"></i></div>
+                    </a>
+                    <div class="me-meta">
+                        <div class="me-name" id="me-name">You</div>
+                        <div class="me-sub">在线 · QBE Connect</div>
+                    </div>
+                </div>
+                <div class="side-actions">
+                    <button class="icon-btn" id="btn-new-menu" type="button" aria-label="新建" aria-haspopup="true" aria-expanded="false" title="新建联系人 / 群聊">
+                        <i class="fa-solid fa-plus"></i>
+                    </button>
+                    <button class="icon-btn" id="btn-collapse" type="button" aria-label="收起/展开联系人"><i class="fa-solid fa-angles-left"></i></button>
+
+                    <!-- Floating new-contact/group menu -->
+                    <div class="new-menu-pop" id="new-menu-pop" data-open="false" role="menu" aria-label="新建菜单">
+                        <div class="new-menu-head">新建</div>
+                        <div class="new-menu-items">
+                            <button class="new-menu-item" id="nm-add-friend" type="button" role="menuitem">
+                                <div class="new-menu-icon teal"><i class="fa-solid fa-user-plus"></i></div>
+                                <div class="new-menu-text">
+                                    <strong>添加联系人</strong>
+                                    <span>通过 UID 发送请求</span>
+                                </div>
+                            </button>
+                            <button class="new-menu-item" id="nm-create-group" type="button" role="menuitem">
+                                <div class="new-menu-icon purple"><i class="fa-solid fa-people-group"></i></div>
+                                <div class="new-menu-text">
+                                    <strong>创建群聊</strong>
+                                    <span>输入群名与成员 UID</span>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="side-tools">
+                <div class="search">
+                    <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+                    <input id="search" type="text" placeholder="搜索联系人 / 群聊" autocomplete="off">
+                </div>
+                <div class="hintline" aria-label="快捷键提示">
+                    <span><code>Ctrl</code> + <code>K</code> 新建</span>
+                    <span class="kbd">Ctrl+F 搜索</span>
+                </div>
+                <div class="filters" aria-label="筛选">
+                    <div class="pill active" data-filter="all">全部</div>
+                    <div class="pill" data-filter="online">在线</div>
+                    <div class="pill" data-filter="unread">未读</div>
+                </div>
+                <div class="friends-panel" aria-label="好友列表">
+                    <div class="friends-title">好友</div>
+                    <div class="friend-list" id="friend-list"></div>
+                </div>
+            </div>
+
+            <div class="user-list" id="user-list" role="listbox" aria-label="用户列表"></div>
+
+            <div class="side-bottom">
+                <div class="mini">提示：回车发送，Shift+Enter 换行</div>
+                <div class="collapse-hint">左侧可收缩</div>
+            </div>
+        </aside>
+
+        <main class="panel chat" aria-label="聊天窗口">
+            <header class="chat-head">
+                <div class="chat-peer">
+                    <div class="peer-avatar" id="peer-avatar" aria-hidden="true">A</div>
+                    <div class="peer-meta">
+                        <div class="peer-name" id="peer-name">Alice</div>
+                        <div class="peer-sub" id="peer-sub">在线 · 最近活跃 2 分钟前</div>
+                    </div>
+                </div>
+                <div class="chat-actions">
+                    <button class="icon-btn" id="btn-search" type="button" aria-label="在会话中搜索"><i class="fa-solid fa-magnifying-glass"></i></button>
+                    <button class="icon-btn" id="btn-call" type="button" aria-label="语音通话"><i class="fa-solid fa-phone"></i></button>
+                    <button class="icon-btn" id="btn-more" type="button" aria-label="更多"><i class="fa-solid fa-ellipsis"></i></button>
+                </div>
+
+                <div class="head-pop" id="search-pop" data-open="false" aria-label="会话搜索">
+                    <div class="row">
+                        <input id="search-thread" type="text" placeholder="搜索当前会话内容..." autocomplete="off">
+                        <div class="meta" id="search-meta">0/0</div>
+                        <button class="icon-btn" id="btn-prev" type="button" aria-label="上一个"><i class="fa-solid fa-chevron-up"></i></button>
+                        <button class="icon-btn" id="btn-next" type="button" aria-label="下一个"><i class="fa-solid fa-chevron-down"></i></button>
+                        <button class="icon-btn" id="btn-close-search" type="button" aria-label="关闭"><i class="fa-solid fa-xmark"></i></button>
+                    </div>
+                </div>
+
+                <div class="head-pop" id="more-pop" data-open="false" aria-label="更多操作">
+                    <div class="menu">
+                        <button type="button" id="m-mute"><span><i class="fa-solid fa-bell-slash menu-icon-left"></i>静音此会话</span><small id="m-mute-s">关闭</small></button>
+                        <button type="button" id="m-clear"><span><i class="fa-solid fa-broom menu-icon-left"></i>清空聊天记录</span><small>当前会话</small></button>
+                        <button type="button" id="m-export"><span><i class="fa-solid fa-file-arrow-down menu-icon-left"></i>导出聊天记录</span><small>.txt</small></button>
+                        <button type="button" id="m-copy-me"><span><i class="fa-regular fa-copy menu-icon-left"></i>复制我的信息</span><small>UID/邮箱</small></button>
+                    </div>
+                </div>
+            </header>
+
+            <section class="chat-body" id="chat-body" aria-label="消息列表">
+                <div class="day-sep"><span>今天</span></div>
+            </section>
+
+            <footer class="compose" aria-label="消息输入">
+                <div class="attach-bar" aria-label="附件操作">
+                    <button class="chip chip-mini" id="btn-emoji" type="button" aria-label="表情" aria-expanded="false" data-active="false">
+                        <i class="fa-regular fa-face-smile"></i>
+                    </button>
+                    <button class="chip chip-mini" id="btn-media" type="button" aria-label="发送图片或视频" title="发送图片/视频">
+                        <i class="fa-regular fa-image"></i>
+                    </button>
+                    <button class="chip chip-mini" id="btn-file" type="button" aria-label="发送压缩文件" title="发送压缩文件">
+                        <i class="fa-solid fa-paperclip"></i>
+                    </button>
+                    <input id="media-input" type="file" accept="image/*,video/*" style="display:none;">
+                    <input id="file-input" type="file" accept=".zip,.rar,application/zip,application/x-zip-compressed,application/vnd.rar" style="display:none;">
+                </div>
+                <div class="compose-row">
+                    <textarea id="composer" placeholder="输入消息..." rows="1"></textarea>
+                    <button class="send" id="btn-send" type="button" disabled>
+                        <span class="send-label">发送</span>
+                        <span class="kbd">Enter</span>
+                    </button>
+                </div>
+                <div class="upload-progress" id="upload-progress" aria-live="polite">
+                    <div class="upload-track">
+                        <div class="upload-bar" id="upload-bar"></div>
+                    </div>
+                    <div class="upload-meta" id="upload-meta">上传中… 0%</div>
+                    <button class="upload-action" id="upload-cancel" type="button">取消</button>
+                </div>
+
+                
+                <div class="emoji-pop" id="emoji-pop" data-open="false" role="dialog" aria-label="表情面板">
+                    <div class="emoji-top">
+                        <div class="emoji-title">表情</div>
+                        <div class="emoji-hint">点击发送 · Esc 关闭</div>
+                    </div>
+                    <div class="emoji-grid" id="emoji-grid" role="listbox" aria-label="表情列表"></div>
+                </div>
+            </footer>
+        </main>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <div class="ctx-menu" id="ctx" aria-label="消息操作菜单">
+        <button type="button" id="ctx-copy"><i class="fa-regular fa-copy"></i>复制消息</button>
+        <button type="button" id="ctx-del" class="danger"><i class="fa-regular fa-trash-can"></i>删除消息</button>
+    </div>
+
+    <div class="ctx-menu" id="cctx" aria-label="会话操作菜单">
+        <button type="button" id="cctx-pin"><i class="fa-solid fa-thumbtack"></i><span>置顶</span></button>
+        <button type="button" id="cctx-rename"><i class="fa-regular fa-pen-to-square"></i><span>重命名</span></button>
+        <button type="button" id="cctx-add"><i class="fa-solid fa-user-plus"></i><span>添加成员</span></button>
+        <button type="button" id="cctx-del" class="danger"><i class="fa-regular fa-trash-can"></i><span>删除会话</span></button>
+    </div>
+
+    <div class="modal" id="group-add-modal" aria-label="添加群成员">
+        <div class="modal-card" role="dialog" aria-modal="true">
+            <div class="modal-top">
+                <strong>添加群成员</strong>
+                <button class="icon-btn" id="group-add-close" type="button" aria-label="关闭"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="search" style="margin-bottom:10px;">
+                    <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+                    <input id="group-add-search" type="text" placeholder="搜索好友" autocomplete="off">
+                </div>
+                <div class="member-list" id="group-add-list" aria-label="好友列表"></div>
+                <div class="nm-status" id="group-add-status"></div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-ghost" id="group-add-cancel" type="button">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="hover-pop" id="hover-pop" aria-live="polite"></div>
+
+    <!-- Add contact modal -->
+    <div class="modal nm-modal" id="add-friend-modal" aria-label="添加联系人">
+        <div class="modal-card" role="dialog" aria-modal="true">
+            <div class="modal-top">
+                <strong>
+                    <div class="modal-icon teal"><i class="fa-solid fa-user-plus"></i></div>
+                    添加联系人
+                </strong>
+                <button class="icon-btn" id="add-friend-close" type="button" aria-label="关闭"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <p class="modal-desc">输入对方的 UID，向其发送好友请求。对方同意后将出现在你的联系人列表中。</p>
+                <div class="nm-input-wrap">
+                    <i class="fa-solid fa-id-badge"></i>
+                    <input class="nm-input" id="add-friend-uid" type="number" min="1" placeholder="输入对方 UID…" autocomplete="off">
+                </div>
+                <div class="nm-status" id="add-friend-status"></div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-primary-grad" id="add-friend-send" type="button">
+                    <i class="fa-solid fa-paper-plane"></i>发送请求
+                </button>
+                <button class="btn btn-ghost" id="add-friend-cancel" type="button">
+                    取消
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create group modal -->
+    <div class="modal nm-modal" id="create-group-modal" aria-label="创建群聊">
+        <div class="modal-card" role="dialog" aria-modal="true">
+            <div class="modal-top">
+                <strong>
+                    <div class="modal-icon purple"><i class="fa-solid fa-people-group"></i></div>
+                    创建群聊
+                </strong>
+                <button class="icon-btn" id="create-group-close" type="button" aria-label="关闭"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <p class="modal-desc">设置群名，并添加成员 UID（至少一名）。创建后将在联系人列表中显示。</p>
+                <div class="nm-input-wrap">
+                    <i class="fa-solid fa-users"></i>
+                    <input class="nm-input" id="group-name-input" type="text" maxlength="32" placeholder="群聊名称…" autocomplete="off">
+                </div>
+                <div class="nm-input-wrap nm-row">
+                    <div class="nm-grow">
+                        <i class="fa-solid fa-id-badge nm-abs-icon"></i>
+                        <input class="nm-input" id="group-uid-input" type="number" min="1" placeholder="输入成员 UID…">
+                    </div>
+                    <button class="icon-btn btn-compact" id="group-add-uid" type="button" title="添加成员">
+                        <i class="fa-solid fa-plus"></i>
+                    </button>
+                </div>
+                <div class="member-chips" id="group-member-chips">
+                    <span class="muted-hint">暂无成员，请添加</span>
+                </div>
+                <div class="nm-status" id="create-group-status"></div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-purple-grad" id="create-group-confirm" type="button">
+                    <i class="fa-solid fa-check"></i>创建群聊
+                </button>
+                <button class="btn btn-ghost" id="create-group-cancel" type="button">
+                    取消
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="friend-req-modal" aria-label="好友请求">
+        <div class="modal-card" role="dialog" aria-modal="true">
+            <div class="modal-top">
+                <strong>收到好友请求</strong>
+            </div>
+            <div class="modal-body">
+                <div id="friend-req-text" class="text-strong"></div>
+                <div class="text-muted-sm">是否同意添加对方为联系人？</div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-primary-grad" id="friend-req-accept" type="button"><i class="fa-solid fa-check"></i>同意</button>
+                <button class="btn btn-danger-outline" id="friend-req-reject" type="button"><i class="fa-solid fa-xmark"></i>拒绝</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="friend-resp-modal" aria-label="好友请求结果">
+        <div class="modal-card" role="dialog" aria-modal="true">
+            <div class="modal-top">
+                <strong>好友请求结果</strong>
+                <button class="icon-btn" id="friend-resp-close" type="button" aria-label="关闭"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <div id="friend-resp-text" class="text-strong"></div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-ghost" id="friend-resp-ok" type="button">确定</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="incoming-call-modal" aria-label="来电">
+        <div class="modal-card" role="dialog" aria-modal="true">
+            <div class="modal-top">
+                <strong id="incoming-call-title">来电</strong>
+                <button class="icon-btn" id="incoming-call-close" type="button" aria-label="关闭"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <div id="incoming-call-name" class="text-strong-lg"></div>
+                <div class="text-muted-md">是否接听视频通话？</div>
+            </div>
+            <div class="modal-actions incoming-actions">
+                <button class="btn" id="incoming-call-accept" type="button"><i class="fa-solid fa-phone"></i>接听</button>
+                <button class="btn danger" id="incoming-call-reject" type="button"><i class="fa-solid fa-phone-slash"></i>拒绝</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="call-modal" aria-label="语音通话">
+        <div class="modal-card" role="dialog" aria-modal="true">
+            <div class="modal-top">
+                <strong id="call-title">语音通话</strong>
+                <button class="icon-btn" id="call-close" type="button" aria-label="关闭"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <div id="call-peer" class="text-strong-lg"></div>
+                <div id="call-timer" class="text-muted-md">00:00</div>
+                <div class="call-status" id="call-status">连接中…</div>
+                <div class="call-device-bar">
+                    <label class="call-device">
+                        <span>麦克风</span>
+                        <select id="call-mic"></select>
+                    </label>
+                    <label class="call-device">
+                        <span>摄像头</span>
+                        <select id="call-cam"></select>
+                    </label>
+                </div>
+                <div class="call-stage">
+                    <video id="call-remote" autoplay playsinline></video>
+                    <video id="call-local" autoplay muted playsinline></video>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn" id="call-mute" type="button"><i class="fa-solid fa-microphone-slash"></i>静音</button>
+                <button class="btn" id="call-camera" type="button"><i class="fa-solid fa-video-slash"></i>关摄像头</button>
+                <button class="btn danger" id="call-hangup" type="button"><i class="fa-solid fa-phone-slash"></i>挂断</button>
+            </div>
+        </div>
+    </div>
+
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/twemoji.min.js" referrerpolicy="no-referrer"></script>
+    <script src="client_connect.js" defer></script>
+</body>
+</html>

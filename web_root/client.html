@@ -1,0 +1,1362 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QBE - 个人中心</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" referrerpolicy="no-referrer">
+    <script>
+      (function () {
+        try {
+          var raw = localStorage.getItem('qbe.ui.settings');
+          var s = raw ? JSON.parse(raw) : null;
+          if (!s) return;
+          var root = document.documentElement;
+          if (s.cursor_fx) root.classList.add('cursor-fx-on');
+          if (s.bg_motion) root.classList.add('bg-motion-on');
+        } catch (_) {}
+      })();
+    </script>
+    <style>
+        /* Custom cursor is provided by qbe_cursor.css */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg0: #06101b;
+            --bg1: #0b1830;
+            --glass: rgba(255, 255, 255, 0.08);
+            --glass2: rgba(255, 255, 255, 0.06);
+            --stroke: rgba(255, 255, 255, 0.10);
+            --text: rgba(255, 255, 255, 0.92);
+            --muted: rgba(255, 255, 255, 0.68);
+            --muted2: rgba(255, 255, 255, 0.56);
+            --shadow: 0 22px 70px rgba(0, 0, 0, 0.45);
+            --radius: 18px;
+
+            --brand: #0ed1b2;
+            --brand2: #44b4ff;
+            --ring: rgba(14, 209, 178, 0.35);
+            --danger: #ff5c7a;
+        }
+
+        html, body { height: 100%; }
+
+        body {
+            font-family: 'Manrope', system-ui, -apple-system, 'Segoe UI', Tahoma, Arial, sans-serif;
+            color: var(--text);
+            background:
+                radial-gradient(1200px 900px at 12% 12%, rgba(14, 209, 178, 0.22), transparent 60%),
+                radial-gradient(1000px 700px at 84% 16%, rgba(68, 180, 255, 0.18), transparent 55%),
+                radial-gradient(900px 700px at 70% 90%, rgba(26, 163, 132, 0.14), transparent 60%),
+                linear-gradient(180deg, var(--bg0), var(--bg1));
+        }
+
+        a { color: inherit; text-decoration: none; }
+
+        .noise {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            background-image: radial-gradient(circle at 1px 1px, rgba(255,255,255,0.06) 1px, transparent 1px);
+            background-size: 18px 18px;
+            mix-blend-mode: overlay;
+            opacity: 0.25;
+        }
+
+        .wrap {
+            min-height: 100vh;
+            max-width: 1180px;
+            margin: 0 auto;
+            padding: 18px;
+            display: grid;
+            grid-template-rows: auto 1fr;
+            gap: 14px;
+        }
+
+        .topbar {
+            border: 1px solid var(--stroke);
+            background: linear-gradient(180deg, var(--glass), var(--glass2));
+            border-radius: calc(var(--radius) + 6px);
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            padding: 14px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 0;
+        }
+        .mark {
+            width: 40px;
+            height: 40px;
+            border-radius: 16px;
+            border: 1px solid rgba(255,255,255,0.16);
+            background: linear-gradient(135deg, rgba(14, 209, 178, 0.60), rgba(68, 180, 255, 0.50));
+            display: grid;
+            place-items: center;
+            box-shadow: 0 14px 28px rgba(0,0,0,0.25);
+            flex: 0 0 auto;
+        }
+        .title h1 {
+            font-size: 1.1rem;
+            letter-spacing: 0.2px;
+            font-weight: 1000;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .title p {
+            color: var(--muted2);
+            font-size: 0.88rem;
+        }
+
+        .actions { display: flex; gap: 10px; align-items: center; }
+
+        .btn {
+            border: 1px solid rgba(255,255,255,0.14);
+            background: rgba(255,255,255,0.06);
+            color: var(--text);
+            height: 42px;
+            padding: 0 12px;
+            border-radius: 14px;
+            cursor: pointer;
+            font-weight: 900;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: transform 120ms ease, background 120ms ease, border-color 120ms ease;
+        }
+        .btn:hover { background: rgba(255,255,255,0.10); border-color: rgba(255,255,255,0.20); }
+        .btn:active { transform: scale(0.98); }
+        .btn:focus-visible { outline: none; box-shadow: 0 0 0 4px var(--ring); }
+
+        .select {
+            width: 100%;
+            height: 44px;
+            padding: 0 12px;
+            border-radius: 16px;
+            border: 1px solid rgba(255,255,255,0.14);
+            background: rgba(255,255,255,0.06);
+            color: var(--text);
+            outline: none;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            cursor: pointer;
+            font-weight: 900;
+            transition: box-shadow 120ms ease, border-color 120ms ease, background 120ms ease;
+        }
+        .select:hover { background: rgba(255,255,255,0.09); border-color: rgba(255,255,255,0.20); }
+        .select:focus-visible { box-shadow: 0 0 0 4px var(--ring); border-color: rgba(14, 209, 178, 0.55); }
+
+        .select-left {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 0;
+        }
+        .select-left span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        .status-pop {
+            position: absolute;
+            right: 18px;
+            top: 0;
+            transform: translateY(62px);
+            width: min(520px, calc(100vw - 48px));
+            border-radius: 18px;
+            border: 1px solid rgba(255,255,255,0.14);
+            background: rgba(6, 16, 27, 0.84);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            box-shadow: 0 22px 70px rgba(0, 0, 0, 0.55);
+            overflow: hidden;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 140ms ease, transform 140ms ease;
+            z-index: 50;
+        }
+        .status-pop[data-open="true"] {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateY(56px);
+        }
+
+        .status-top {
+            padding: 12px 14px;
+            border-bottom: 1px solid rgba(255,255,255,0.10);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+        .status-top strong { font-weight: 1000; }
+        .status-top small { color: rgba(255,255,255,0.62); font-weight: 800; }
+
+        .status-custom {
+            padding: 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.10);
+            display: grid;
+            gap: 10px;
+            background: rgba(255,255,255,0.03);
+        }
+
+        .status-custom-row {
+            display: grid;
+            grid-template-columns: 52px 1fr 110px;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .emoji-btn {
+            border: 1px solid rgba(255,255,255,0.14);
+            background: rgba(255,255,255,0.06);
+            color: var(--text);
+            height: 44px;
+            width: 52px;
+            border-radius: 16px;
+            cursor: pointer;
+            display: grid;
+            place-items: center;
+            font-size: 20px;
+            transition: transform 120ms ease, background 120ms ease, border-color 120ms ease;
+        }
+        .emoji-btn:hover { background: rgba(255,255,255,0.10); border-color: rgba(255,255,255,0.20); }
+        .emoji-btn:active { transform: scale(0.98); }
+        .emoji-btn:focus-visible { outline: none; box-shadow: 0 0 0 4px var(--ring); }
+
+        .status-input {
+            width: 100%;
+            height: 44px;
+            padding: 0 12px;
+            border-radius: 16px;
+            border: 1px solid rgba(255,255,255,0.14);
+            background: rgba(255,255,255,0.06);
+            color: var(--text);
+            outline: none;
+            transition: box-shadow 120ms ease, border-color 120ms ease, background 120ms ease;
+        }
+        .status-input::placeholder { color: rgba(255,255,255,0.52); }
+        .status-input:focus { border-color: rgba(14, 209, 178, 0.55); box-shadow: 0 0 0 4px var(--ring); }
+
+        .status-custom-hint {
+            color: rgba(255,255,255,0.62);
+            font-size: 0.86rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+        .status-custom-hint code { color: rgba(255,255,255,0.75); font-weight: 900; }
+
+        .emoji-pop {
+            position: absolute;
+            left: 12px;
+            right: 12px;
+            top: 118px;
+            bottom: 12px;
+            width: auto;
+            max-height: none;
+            border-radius: 18px;
+            border: 1px solid rgba(255,255,255,0.14);
+            background: rgba(6, 16, 27, 0.84);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            box-shadow: 0 22px 70px rgba(0, 0, 0, 0.55);
+            overflow: hidden;
+            transform-origin: 24px 0;
+            transform: translateY(-6px) scale(0.98);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 140ms ease, transform 140ms ease;
+            z-index: 60;
+        }
+        .emoji-pop[data-open="true"] {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateY(0) scale(1);
+        }
+
+        .emoji-top {
+            padding: 10px 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid rgba(255,255,255,0.10);
+        }
+        .emoji-top strong { font-weight: 1000; }
+        .emoji-top small { color: rgba(255,255,255,0.62); font-weight: 800; }
+
+        .emoji-grid {
+            padding: 10px 10px 14px;
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            gap: 8px;
+            overflow: auto;
+            height: calc(100% - 46px);
+            max-height: none;
+            overscroll-behavior: contain;
+        }
+        .emoji-grid::-webkit-scrollbar { width: 10px; }
+        .emoji-grid::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.14);
+            border-radius: 999px;
+            border: 2px solid transparent;
+            background-clip: padding-box;
+        }
+        .emoji-grid::-webkit-scrollbar-track { background: transparent; }
+
+        .emoji-item {
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            border-radius: 14px;
+            border: 1px solid rgba(255,255,255,0.10);
+            background: rgba(255,255,255,0.05);
+            cursor: pointer;
+            display: grid;
+            place-items: center;
+            transition: background 120ms ease, transform 120ms ease, border-color 120ms ease;
+            font-size: 18px;
+        }
+        .emoji-item:hover { background: rgba(255,255,255,0.09); border-color: rgba(255,255,255,0.18); }
+        .emoji-item:active { transform: scale(0.98); }
+
+        .status-item .danger {
+            border: none;
+            background: transparent;
+            color: rgba(255,255,255,0.70);
+            cursor: pointer;
+            padding: 6px 8px;
+            border-radius: 12px;
+            display: none;
+        }
+        .status-item:hover .danger { display: inline-flex; }
+        .status-item .danger:hover { background: rgba(255, 92, 122, 0.12); color: rgba(255,255,255,0.92); }
+
+        .status-grid {
+            padding: 12px;
+            display: grid;
+            gap: 12px;
+            max-height: min(62vh, 520px);
+            overflow: auto;
+            padding-bottom: 34px;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255,255,255,0.22) transparent;
+        }
+
+        .status-grid::after {
+            content: '';
+            display: block;
+            height: 40px;
+        }
+
+        .status-grid::-webkit-scrollbar { width: 10px; }
+        .status-grid::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.18);
+            border-radius: 999px;
+            border: 2px solid transparent;
+            background-clip: padding-box;
+        }
+        .status-grid::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.26); }
+        .status-grid::-webkit-scrollbar-track { background: transparent; }
+
+        .status-group {
+            border: 1px solid rgba(255,255,255,0.10);
+            background: rgba(255,255,255,0.03);
+            border-radius: 18px;
+            overflow: hidden;
+        }
+
+        .status-group-head {
+            position: sticky;
+            top: 0;
+            z-index: 2;
+            padding: 10px 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.10);
+            background:
+                radial-gradient(600px 220px at 20% 0%, rgba(14, 209, 178, 0.12), transparent 65%),
+                rgba(6, 16, 27, 0.72);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+        }
+
+        .status-group-head strong {
+            font-weight: 1000;
+            letter-spacing: 0.2px;
+        }
+        .status-group-head span {
+            color: rgba(255,255,255,0.62);
+            font-size: 0.82rem;
+            font-weight: 800;
+        }
+
+        .status-items {
+            padding: 10px;
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+        }
+
+        .status-item {
+            border: 1px solid rgba(255,255,255,0.12);
+            background: rgba(255,255,255,0.05);
+            border-radius: 16px;
+            padding: 10px 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: rgba(255,255,255,0.90);
+            font-weight: 900;
+        }
+        .status-item:hover { background: rgba(255,255,255,0.09); border-color: rgba(255,255,255,0.18); }
+        .status-item[data-active="true"] {
+            border-color: rgba(14, 209, 178, 0.42);
+            background: linear-gradient(135deg, rgba(14, 209, 178, 0.18), rgba(68, 180, 255, 0.08));
+        }
+        .status-item .left { display: inline-flex; align-items: center; gap: 8px; min-width: 0; }
+        .status-item .emoji { width: 22px; text-align: center; }
+        .status-item .label { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        .status-item .right {
+            margin-left: auto;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .status-item .check {
+            width: 18px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn.primary {
+            border: none;
+            color: rgba(5, 20, 22, 0.92);
+            background: linear-gradient(135deg, rgba(14, 209, 178, 0.95), rgba(68, 180, 255, 0.85));
+        }
+        .btn.danger {
+            border: 1px solid rgba(255, 92, 122, 0.36);
+            background: rgba(255, 92, 122, 0.12);
+            color: rgba(255,255,255,0.92);
+        }
+
+        .grid {
+            border: 1px solid var(--stroke);
+            background: linear-gradient(180deg, var(--glass), var(--glass2));
+            border-radius: calc(var(--radius) + 6px);
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            overflow: hidden;
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            min-height: 560px;
+        }
+
+        .nav {
+            border-right: 1px solid var(--stroke);
+            padding: 12px;
+            display: grid;
+            grid-template-rows: auto 1fr;
+            gap: 10px;
+        }
+
+        .profile {
+            display: grid;
+            gap: 10px;
+            padding: 12px;
+            border-radius: 18px;
+            border: 1px solid rgba(255,255,255,0.12);
+            background: rgba(255,255,255,0.05);
+        }
+
+        .p-top { display: grid; grid-template-columns: 62px 1fr; gap: 12px; align-items: center; }
+        .p-avatar {
+            width: 62px;
+            height: 62px;
+            border-radius: 22px;
+            border: 1px solid rgba(255,255,255,0.16);
+            background: radial-gradient(18px 18px at 30% 25%, rgba(255,255,255,0.28), transparent 55%),
+                linear-gradient(135deg, rgba(14, 209, 178, 0.65), rgba(68, 180, 255, 0.50));
+            display: grid;
+            place-items: center;
+            font-weight: 1000;
+            box-shadow: 0 18px 32px rgba(0,0,0,0.25);
+            position: relative;
+        }
+        .p-avatar::after {
+            content: '';
+            position: absolute;
+            right: -4px;
+            bottom: -4px;
+            width: 14px;
+            height: 14px;
+            border-radius: 999px;
+            background: #22c55e;
+            border: 2px solid rgba(6, 16, 27, 0.95);
+        }
+        .p-name { font-size: 1.05rem; font-weight: 1000; }
+        .p-sub { color: var(--muted2); font-size: 0.88rem; }
+
+        .tabs { display: grid; gap: 8px; }
+        .tab {
+            border: 1px solid rgba(255,255,255,0.12);
+            background: rgba(255,255,255,0.04);
+            color: rgba(255,255,255,0.86);
+            padding: 10px 12px;
+            border-radius: 16px;
+            cursor: pointer;
+            font-weight: 900;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: background 120ms ease, border-color 120ms ease;
+        }
+        .tab:hover { background: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.16); }
+        .tab.active {
+            background: linear-gradient(135deg, rgba(14, 209, 178, 0.20), rgba(68, 180, 255, 0.10));
+            border-color: rgba(255,255,255,0.18);
+        }
+        .tab small { color: rgba(255,255,255,0.62); font-weight: 800; }
+
+        .content { padding: 18px; overflow: auto; }
+        .content::-webkit-scrollbar { width: 10px; }
+        .content::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.14);
+            border-radius: 999px;
+            border: 2px solid transparent;
+            background-clip: padding-box;
+        }
+
+        .content::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.20); }
+
+        .panel { display: none; }
+        .panel.active { display: grid; gap: 14px; align-content: start; }
+
+        .section {
+            border: 1px solid rgba(255,255,255,0.12);
+            background: rgba(255,255,255,0.04);
+            border-radius: 18px;
+            padding: 14px;
+            box-shadow: 0 18px 55px rgba(0,0,0,0.16);
+        }
+
+        .section h2 {
+            font-size: 1rem;
+            font-weight: 1000;
+            margin-bottom: 10px;
+        }
+
+        .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .field { display: grid; gap: 6px; }
+        label { font-size: 0.86rem; font-weight: 900; color: rgba(255,255,255,0.78); }
+        input {
+            border: 1px solid rgba(255,255,255,0.14);
+            background: rgba(255,255,255,0.06);
+            color: var(--text);
+            height: 44px;
+            padding: 0 12px;
+            border-radius: 16px;
+            outline: none;
+            transition: box-shadow 120ms ease, border-color 120ms ease;
+        }
+        input:focus { border-color: rgba(14, 209, 178, 0.55); box-shadow: 0 0 0 4px var(--ring); }
+        input::placeholder { color: rgba(255,255,255,0.50); }
+
+        .hint { color: rgba(255,255,255,0.62); font-size: 0.86rem; line-height: 1.35; }
+
+        .switch {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 10px 12px;
+            border-radius: 16px;
+            border: 1px solid rgba(255,255,255,0.12);
+            background: rgba(255,255,255,0.04);
+            transition: background 120ms ease, border-color 120ms ease;
+        }
+        .switch:hover { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.18); }
+        .switch strong { font-weight: 1000; }
+        .switch span { color: rgba(255,255,255,0.62); font-size: 0.86rem; }
+
+        .toggle {
+            width: 48px;
+            height: 28px;
+            border-radius: 999px;
+            border: 1px solid rgba(255,255,255,0.16);
+            background: rgba(255,255,255,0.06);
+            position: relative;
+            cursor: pointer;
+            flex: 0 0 auto;
+        }
+        .toggle::after {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 22px;
+            height: 22px;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.82);
+            transition: transform 140ms ease, background 140ms ease;
+        }
+        .toggle.on {
+            background: rgba(14, 209, 178, 0.20);
+            border-color: rgba(14, 209, 178, 0.30);
+        }
+        .toggle.on::after {
+            transform: translateX(20px);
+            background: rgba(14, 209, 178, 0.95);
+        }
+
+        /* Visual cue when privacy is enabled */
+        .privacy-on .topbar {
+            border-color: rgba(255, 213, 79, 0.22);
+        }
+        .privacy-on .mark {
+            background: linear-gradient(135deg, rgba(255, 213, 79, 0.72), rgba(68, 180, 255, 0.46));
+        }
+
+        .toast {
+            position: fixed;
+            right: 16px;
+            bottom: 16px;
+            z-index: 120;
+            background: rgba(6, 16, 27, 0.82);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1px solid rgba(255,255,255,0.14);
+            box-shadow: 0 18px 55px rgba(0,0,0,0.45);
+            padding: 10px 12px;
+            border-radius: 16px;
+            color: rgba(255,255,255,0.92);
+            font-weight: 900;
+            max-width: min(92vw, 380px);
+            opacity: 0;
+            transform: translateY(6px);
+            pointer-events: none;
+            transition: opacity 160ms ease, transform 160ms ease;
+        }
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        @media (max-width: 940px) {
+            .grid { grid-template-columns: 1fr; }
+            .nav { border-right: none; border-bottom: 1px solid var(--stroke); }
+            .row { grid-template-columns: 1fr; }
+            .tabs { grid-template-columns: repeat(3, 1fr); }
+            .tab { justify-content: center; gap: 8px; }
+            .tab small { display: none; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            * { transition: none !important; }
+        }
+    </style>
+  </head>
+<body>
+    <div class="noise" aria-hidden="true"></div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <div class="wrap" role="application" aria-label="个人中心">
+        <header class="topbar">
+            <div class="title">
+                <div class="mark" aria-hidden="true"><i class="fa-solid fa-user-gear"></i></div>
+                <div>
+                    <h1>个人中心</h1>
+                    <p id="subtitle">资料与设置</p>
+                </div>
+            </div>
+
+            <div class="actions">
+                <a class="btn" id="btn-back" href="client_connect.html" aria-label="返回聊天"><i class="fa-solid fa-arrow-left"></i>返回</a>
+                <button class="btn primary" id="btn-save" type="button"><i class="fa-solid fa-floppy-disk"></i>保存</button>
+                <button class="btn danger" id="btn-logout" type="button"><i class="fa-solid fa-right-from-bracket"></i>退出</button>
+            </div>
+        </header>
+
+        <section class="grid" aria-label="设置布局">
+            <aside class="nav" aria-label="导航">
+                <div class="profile">
+                    <div class="p-top">
+                        <div class="p-avatar" id="p-avatar" aria-hidden="true">Y</div>
+                        <div>
+                            <div class="p-name" id="p-name">You</div>
+                            <div class="p-sub" id="p-sub">在线 · QBE Connect</div>
+                        </div>
+                    </div>
+                    <div class="hint">这里是纯前端示例页面：你可以先保存本地资料，后续再对接真实后端。</div>
+                </div>
+
+                <div class="tabs" role="tablist" aria-label="设置分类">
+                    <button class="tab active" type="button" data-tab="profile" role="tab" aria-selected="true">
+                        <span><i class="fa-solid fa-id-card"></i> 资料</span>
+                        <small>状态/签名</small>
+                    </button>
+                    <button class="tab" type="button" data-tab="settings" role="tab" aria-selected="false">
+                        <span><i class="fa-solid fa-sliders"></i> 设置</span>
+                        <small>通知/隐私</small>
+                    </button>
+                    <button class="tab" type="button" data-tab="security" role="tab" aria-selected="false">
+                        <span><i class="fa-solid fa-shield-halved"></i> 安全</span>
+                        <small>登录信息</small>
+                    </button>
+                </div>
+            </aside>
+
+            <main class="content" aria-label="内容区">
+                <div class="panel active" id="panel-profile" role="tabpanel">
+                    <div class="section">
+                        <h2>基本资料</h2>
+                        <div class="row">
+                            <div class="field">
+                                <label for="status">状态</label>
+                                <button id="status" class="select" type="button" aria-haspopup="menu" aria-expanded="false">
+                                    <span class="select-left"><span id="status-emoji" aria-hidden="true">🟢</span><span id="status-label">在线</span></span>
+                                    <i class="fa-solid fa-chevron-down" aria-hidden="true" style="opacity:0.75;"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="field" style="margin-top:10px;">
+                            <label for="signature">个性签名</label>
+                            <input id="signature" type="text" placeholder="一句话介绍自己" autocomplete="off">
+                        </div>
+                        <div class="hint" style="margin-top:10px;">保存后会同步到本机浏览器（localStorage）。</div>
+                    </div>
+
+                    <div class="status-pop" id="status-pop" role="menu" aria-label="选择状态" data-open="false">
+                        <div class="status-top">
+                            <div style="display:flex; flex-direction:column; gap:2px;">
+                                <strong>设置我的状态</strong>
+                                <small>参考微信状态（本地保存）</small>
+                            </div>
+                            <button class="btn" id="status-close" type="button" style="height:40px;"><i class="fa-solid fa-xmark"></i>关闭</button>
+                        </div>
+
+                        <div class="status-custom" aria-label="自定义状态">
+                            <div class="status-custom-row">
+                                <button class="emoji-btn" id="btn-custom-emoji" type="button" aria-label="选择表情">✨</button>
+                                <input class="status-input" id="custom-text" type="text" maxlength="20" placeholder="自定义状态（最多 20 字）" autocomplete="off">
+                                <button class="btn" id="btn-custom-save" type="button" style="height:44px;"><i class="fa-solid fa-plus"></i>添加</button>
+                            </div>
+                            <div class="status-custom-hint">
+                                <span>会显示在“最近使用”</span>
+                                <span><code>Enter</code> 添加</span>
+                            </div>
+                        </div>
+
+                        <div class="status-grid" id="status-grid"></div>
+
+                        <div class="emoji-pop" id="emoji-pop" data-open="false" aria-label="选择表情">
+                            <div class="emoji-top">
+                                <strong>选择表情</strong>
+                                <small>用于自定义状态</small>
+                            </div>
+                            <div class="emoji-grid" id="emoji-grid"></div>
+                        </div>
+                    </div>
+
+                    <div class="section">
+                        <h2>展示信息</h2>
+                        <div class="hint">聊天页左上角显示你的用户名（uname）。这里仅保存状态/签名。</div>
+                    </div>
+                </div>
+
+                <div class="panel" id="panel-settings" role="tabpanel">
+                    <div class="section">
+                        <h2>通知</h2>
+                        <div class="switch">
+                            <div>
+                                <strong>消息通知</strong>
+                                <div><span>新消息提醒（示例开关）</span></div>
+                            </div>
+                            <div class="toggle" id="t-notify" role="switch" aria-checked="false" tabindex="0"></div>
+                        </div>
+                        <div class="switch" style="margin-top:10px;">
+                            <div>
+                                <strong>声音</strong>
+                                <div><span>收到消息播放提示音（示例）</span></div>
+                            </div>
+                            <div class="toggle" id="t-sound" role="switch" aria-checked="false" tabindex="0"></div>
+                        </div>
+                        <div class="switch" style="margin-top:10px;">
+                            <div>
+                                <strong>光标特效</strong>
+                                <div><span>关闭后聊天页停用光标动画</span></div>
+                            </div>
+                            <div class="toggle" id="t-cursorfx" role="switch" aria-checked="false" tabindex="0"></div>
+                        </div>
+                        <div class="switch" style="margin-top:10px;">
+                            <div>
+                                <strong>背景动态</strong>
+                                <div><span>开启海洋背景动态效果</span></div>
+                            </div>
+                            <div class="toggle" id="t-bg-motion" role="switch" aria-checked="false" tabindex="0"></div>
+                        </div>
+                    </div>
+
+                    <div class="section">
+                        <h2>TURN 设置</h2>
+                        <div class="hint">可选：配置 TURN 以提升通话连通性</div>
+                        <div class="row" style="gap:12px; margin-top:10px;">
+                            <div class="field" style="flex:1;">
+                                <label for="turn-urls">TURN 地址</label>
+                                <input id="turn-urls" type="text" placeholder="turn:host:3478" />
+                            </div>
+                        </div>
+                        <div class="row" style="gap:12px; margin-top:10px;">
+                            <div class="field" style="flex:1;">
+                                <label for="turn-user">用户名</label>
+                                <input id="turn-user" type="text" placeholder="username" />
+                            </div>
+                            <div class="field" style="flex:1;">
+                                <label for="turn-pass">密码</label>
+                                <input id="turn-pass" type="password" placeholder="credential" />
+                            </div>
+                        </div>
+                        <div class="row" style="gap:12px; margin-top:10px;">
+                            <button class="btn btn-ghost" id="btn-turn-save" type="button">
+                                <i class="fa-solid fa-floppy-disk"></i>保存 TURN
+                            </button>
+                            <button class="btn btn-ghost" id="btn-turn-clear" type="button">
+                                <i class="fa-solid fa-trash"></i>清除 TURN
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="section">
+                        <h2>隐私</h2>
+                        <div class="switch">
+                            <div>
+                                <strong>隐身模式</strong>
+                                <div><span>聊天页显示为隐身（示例）</span></div>
+                            </div>
+                            <div class="toggle" id="t-privacy" role="switch" aria-checked="false" tabindex="0"></div>
+                        </div>
+
+                        <div class="switch" style="margin-top:10px;">
+                            <div>
+                                <strong>隐藏 UID</strong>
+                                <div><span>聊天页不显示 UID（示例）</span></div>
+                            </div>
+                            <div class="toggle" id="t-hideuid" role="switch" aria-checked="false" tabindex="0"></div>
+                        </div>
+
+                        <div class="switch" style="margin-top:10px;">
+                            <div>
+                                <strong>通知显示内容</strong>
+                                <div><span>关闭后通知不展示消息详情</span></div>
+                            </div>
+                            <div class="toggle" id="t-notifypreview" role="switch" aria-checked="false" tabindex="0"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel" id="panel-security" role="tabpanel">
+                    <div class="section">
+                        <h2>登录信息</h2>
+                        <div class="row">
+                            <div class="field">
+                                <label>当前账号</label>
+                                <input id="account" type="text" disabled>
+                            </div>
+                            <div class="field">
+                                <label>邮箱</label>
+                                <input id="email" type="text" disabled>
+                            </div>
+                            <div class="field">
+                                <label>会话时间</label>
+                                <input id="session-ts" type="text" disabled>
+                            </div>
+                        </div>
+                        <div class="hint" style="margin-top:10px;">该项目目前为前端示例：登录态存放在 localStorage 的 `qbe.session`。</div>
+                    </div>
+
+                    <div class="section">
+                        <h2>快捷操作</h2>
+                        <div class="hint">你可以退出登录清空会话，然后回到登录页。</div>
+                    </div>
+                </div>
+            </main>
+        </section>
+    </div>
+
+    <script>
+        const SESSION_KEY = 'qbe.session';
+        const PROFILE_KEY = 'qbe.profile';
+        const SETTINGS_KEY = 'qbe.settings';
+
+        function qs(sel, root = document) { return root.querySelector(sel); }
+        function qsa(sel, root = document) { return Array.from(root.querySelectorAll(sel)); }
+
+        function readJson(key, fallback) {
+            try {
+                const raw = localStorage.getItem(key);
+                return raw ? JSON.parse(raw) : fallback;
+            } catch (_) {
+                return fallback;
+            }
+        }
+
+        function writeJson(key, value) {
+            try { localStorage.setItem(key, JSON.stringify(value)); } catch (_) {}
+        }
+
+        function toast(msg) {
+            const t = qs('#toast');
+            if (!t) return;
+            t.textContent = String(msg || '');
+            t.classList.add('show');
+            window.clearTimeout(toast._timer);
+            toast._timer = window.setTimeout(() => t.classList.remove('show'), 1800);
+        }
+
+        function fmtTs(ts) {
+            if (!ts) return '';
+            const d = new Date(ts);
+            if (Number.isNaN(d.getTime())) return '';
+            const yy = d.getFullYear();
+            const mm = String(d.getMonth() + 1).padStart(2, '0');
+            const dd = String(d.getDate()).padStart(2, '0');
+            const hh = String(d.getHours()).padStart(2, '0');
+            const mi = String(d.getMinutes()).padStart(2, '0');
+            return `${yy}-${mm}-${dd} ${hh}:${mi}`;
+        }
+
+        function setToggle(el, on) {
+            el.classList.toggle('on', !!on);
+            el.setAttribute('aria-checked', on ? 'true' : 'false');
+        }
+
+        function bindToggle(id, state, key, onChange) {
+            const el = qs(id);
+            if (!el) return;
+            const apply = () => setToggle(el, !!state[key]);
+            const flip = () => {
+                state[key] = !state[key];
+                apply();
+                try { if (typeof onChange === 'function') onChange(state); } catch (_) {}
+            };
+            el.addEventListener('click', flip);
+            el.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    flip();
+                }
+            });
+            apply();
+        }
+
+        function switchTab(which) {
+            qsa('.tab').forEach((t) => {
+                const on = t.getAttribute('data-tab') === which;
+                t.classList.toggle('active', on);
+                t.setAttribute('aria-selected', on ? 'true' : 'false');
+            });
+            qs('#panel-profile').classList.toggle('active', which === 'profile');
+            qs('#panel-settings').classList.toggle('active', which === 'settings');
+            qs('#panel-security').classList.toggle('active', which === 'security');
+        }
+
+        // Boot
+        const session = readJson(SESSION_KEY, null);
+        const profile = readJson(PROFILE_KEY, { status: '在线', status_emoji: '🟢', signature: '' });
+        const settings = readJson(SETTINGS_KEY, { notify: true, sound: false, privacy: false, hide_uid: false, notify_preview: true });
+        const UI_SETTINGS_KEY = 'qbe.ui.settings';
+        const uiSettings = readJson(UI_SETTINGS_KEY, { cursor_fx: false, bg_motion: false });
+        const TURN_KEY = 'qbe.turn';
+        const turnCfg = readJson(TURN_KEY, { urls: '', username: '', credential: '' });
+
+        const RECENT_KEY = 'qbe.profile.status_recent';
+
+        const username = (session && (session.username || session.name)) ? String(session.username || session.name) : 'You';
+        const uid = (session && (session.uid !== undefined && session.uid !== null)) ? String(session.uid) : '';
+        const email = (session && session.email) ? String(session.email) : '';
+        // uname (session.username) is treated as the nickname.
+        qs('#p-name').textContent = username;
+        // p-sub is controlled by setStatusUI()
+        qs('#p-avatar').textContent = username.slice(0, 1).toUpperCase();
+        qs('#subtitle').textContent = '账号：' + username;
+
+        function setStatusUI(emoji, label) {
+            const e = String(emoji || '').trim() || '🟢';
+            const l = String(label || '').trim() || '在线';
+
+            // Privacy mode masks status display (but keeps the stored value).
+            const privacyOn = !!(settings && settings.privacy);
+            const hideUid = !!(settings && (settings.hide_uid || settings.privacy));
+
+            const showEmoji = privacyOn ? '🕶️' : e;
+            const showLabel = privacyOn ? '隐身' : l;
+
+            qs('#status-emoji').textContent = showEmoji;
+            qs('#status-label').textContent = showLabel;
+
+            const idLine = (!hideUid && uid) ? ('UID ' + uid) : '';
+            const head = showLabel + ' ' + showEmoji;
+            qs('#p-sub').textContent = idLine ? (head + ' · ' + idLine) : (head + ' · QBE Connect');
+        }
+
+        function sanitizeLabel(s) {
+            return String(s || '').replace(/[\r\n\t]/g, ' ').trim().slice(0, 20);
+        }
+
+        function readRecent() {
+            const a = readJson(RECENT_KEY, []);
+            return Array.isArray(a) ? a : [];
+        }
+
+        function writeRecent(a) {
+            const list = Array.isArray(a) ? a.slice(0, 12) : [];
+            writeJson(RECENT_KEY, list);
+        }
+
+        function pushRecent(item) {
+            const it = { emoji: String(item.emoji || '✨'), label: sanitizeLabel(item.label) };
+            if (!it.label) return;
+            const list = readRecent().filter((x) => !(x && x.label === it.label && x.emoji === it.emoji));
+            list.unshift(it);
+            writeRecent(list);
+        }
+
+        const STATUS_GROUPS = [
+            {
+                id: 'recent',
+                title: '最近使用',
+                subtitle: '你的自定义与常用',
+                items: []
+            },
+            {
+                id: 'mood',
+                title: '心情',
+                subtitle: '今天感觉如何',
+                items: [
+                    { emoji: '🙂', label: '还不错' },
+                    { emoji: '😄', label: '开心' },
+                    { emoji: '🥲', label: '有点累' },
+                    { emoji: '😴', label: '困' },
+                ]
+            },
+            {
+                id: 'work',
+                title: '工作',
+                subtitle: '专注与节奏',
+                items: [
+                    { emoji: '🟢', label: '在线' },
+                    { emoji: '🕒', label: '忙碌' },
+                    { emoji: '🧠', label: '专注' },
+                    { emoji: '🤝', label: '开会' },
+                ]
+            },
+            {
+                id: 'activity',
+                title: '活动',
+                subtitle: '正在做什么',
+                items: [
+                    { emoji: '🍽️', label: '吃饭' },
+                    { emoji: '☕', label: '喝咖啡' },
+                    { emoji: '🎧', label: '听歌' },
+                    { emoji: '📚', label: '学习' },
+                ]
+            },
+            {
+                id: 'rest',
+                title: '休息',
+                subtitle: '稍后回复',
+                items: [
+                    { emoji: '🛌', label: '休息' },
+                    { emoji: '🚗', label: '通勤中' },
+                    { emoji: '🌙', label: '下线' },
+                    { emoji: '🏖️', label: '度假' },
+                ]
+            },
+        ];
+
+        function openStatusPop() {
+            const pop = qs('#status-pop');
+            if (!pop) return;
+            pop.setAttribute('data-open', 'true');
+            const btn = qs('#status');
+            if (btn) btn.setAttribute('aria-expanded', 'true');
+        }
+
+        function closeStatusPop() {
+            const pop = qs('#status-pop');
+            if (!pop) return;
+            pop.setAttribute('data-open', 'false');
+            const btn = qs('#status');
+            if (btn) btn.setAttribute('aria-expanded', 'false');
+        }
+
+        function buildStatusGrid() {
+            const grid = qs('#status-grid');
+            if (!grid) return;
+            const curLabel = String(profile.status || '在线');
+            const curEmoji = String(profile.status_emoji || '🟢');
+            grid.innerHTML = '';
+
+            // Refresh recent group every time.
+            STATUS_GROUPS[0].items = readRecent();
+
+            for (const g of STATUS_GROUPS) {
+                const itemsList = (g.items || []).filter((x) => x && x.label);
+                if (g.id === 'recent' && itemsList.length === 0) continue;
+                const wrap = document.createElement('div');
+                wrap.className = 'status-group';
+
+                const head = document.createElement('div');
+                head.className = 'status-group-head';
+                head.innerHTML = `<strong>${g.title}</strong><span>${g.subtitle}</span>`;
+
+                const items = document.createElement('div');
+                items.className = 'status-items';
+
+                for (const s of itemsList) {
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'status-item';
+                    btn.setAttribute('role', 'menuitem');
+                    const active = (s.label === curLabel && s.emoji === curEmoji);
+                    btn.setAttribute('data-active', active ? 'true' : 'false');
+                    const del = (g.id === 'recent') ? `<button class="danger" type="button" data-del="1" title="移除"><i class="fa-regular fa-trash-can"></i></button>` : '';
+                    btn.innerHTML = `
+                        <span class="left">
+                            <span class="emoji">${s.emoji}</span>
+                            <span class="label">${s.label}</span>
+                        </span>
+                        <span class="right">
+                            ${del}
+                            <span class="check"><i class="fa-solid fa-check" style="opacity:${active ? '0.9' : '0.0'};"></i></span>
+                        </span>
+                    `;
+                    btn.addEventListener('click', (e) => {
+                        // ignore clicks on delete button
+                        const t = e && e.target ? e.target : null;
+                        if (t && t.closest && t.closest('[data-del="1"]')) return;
+                        profile.status = s.label;
+                        profile.status_emoji = s.emoji;
+                        writeJson(PROFILE_KEY, profile);
+                        setStatusUI(profile.status_emoji, profile.status);
+                        pushRecent({ emoji: s.emoji, label: s.label });
+                        buildStatusGrid();
+                        closeStatusPop();
+                    });
+
+                    // delete from recent
+                    const delBtn = btn.querySelector('[data-del="1"]');
+                    if (delBtn) {
+                        delBtn.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            const list = readRecent().filter((x) => !(x && x.label === s.label && x.emoji === s.emoji));
+                            writeRecent(list);
+                            buildStatusGrid();
+                        });
+                    }
+                    items.appendChild(btn);
+                }
+
+                wrap.appendChild(head);
+                wrap.appendChild(items);
+                grid.appendChild(wrap);
+            }
+        }
+
+        // Custom status
+        const EMOJI_LIST = [
+            '✨','🟢','🕒','🧠','🤝','🙂','😄','🥲','😴','🍽️','☕','🎧','📚','🚗','🛌','🌙','🏖️','🔥','💡','✅','📌','🧩','🧪','🛠️','🎯','📞','💬','🧡','💙','💚','🌟','🫶'
+        ];
+
+        function openEmojiPop() {
+            const pop = qs('#emoji-pop');
+            if (!pop) return;
+            pop.setAttribute('data-open', 'true');
+        }
+        function closeEmojiPop() {
+            const pop = qs('#emoji-pop');
+            if (!pop) return;
+            pop.setAttribute('data-open', 'false');
+        }
+
+        function buildEmojiGrid() {
+            const grid = qs('#emoji-grid');
+            if (!grid) return;
+            grid.innerHTML = '';
+            for (const e of EMOJI_LIST) {
+                const b = document.createElement('button');
+                b.type = 'button';
+                b.className = 'emoji-item';
+                b.textContent = e;
+                b.addEventListener('click', () => {
+                    qs('#btn-custom-emoji').textContent = e;
+                    closeEmojiPop();
+                    qs('#custom-text').focus();
+                });
+                grid.appendChild(b);
+            }
+        }
+
+        function addCustomStatus() {
+            const emoji = String(qs('#btn-custom-emoji').textContent || '✨').trim() || '✨';
+            const label = sanitizeLabel(qs('#custom-text').value);
+            if (!label) return;
+            pushRecent({ emoji, label });
+            qs('#custom-text').value = '';
+            buildStatusGrid();
+            toast('已添加到最近使用');
+        }
+
+        // initial status UI
+        if (!profile.status_emoji) profile.status_emoji = '🟢';
+        setStatusUI(profile.status_emoji, profile.status);
+        buildStatusGrid();
+
+        buildEmojiGrid();
+
+        qs('#status').addEventListener('click', () => {
+            const pop = qs('#status-pop');
+            const open = pop && pop.getAttribute('data-open') === 'true';
+            if (open) closeStatusPop();
+            else openStatusPop();
+        });
+        qs('#status-close').addEventListener('click', closeStatusPop);
+        document.addEventListener('click', (e) => {
+            const pop = qs('#status-pop');
+            const btn = qs('#status');
+            if (!pop || pop.getAttribute('data-open') !== 'true') return;
+            const inPop = pop.contains(e.target);
+            const onBtn = btn && (btn === e.target || btn.contains(e.target));
+            if (!inPop && !onBtn) closeStatusPop();
+        });
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeStatusPop();
+        });
+
+        qs('#btn-custom-emoji').addEventListener('click', () => {
+            const pop = qs('#emoji-pop');
+            const open = pop && pop.getAttribute('data-open') === 'true';
+            if (open) closeEmojiPop();
+            else openEmojiPop();
+        });
+
+        qs('#btn-custom-save').addEventListener('click', addCustomStatus);
+        qs('#custom-text').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                addCustomStatus();
+            }
+        });
+
+        document.addEventListener('click', (e) => {
+            const pop = qs('#emoji-pop');
+            const btn = qs('#btn-custom-emoji');
+            if (!pop || pop.getAttribute('data-open') !== 'true') return;
+            const inPop = pop.contains(e.target);
+            const onBtn = btn && (btn === e.target || btn.contains(e.target));
+            if (!inPop && !onBtn) closeEmojiPop();
+        });
+        qs('#signature').value = profile.signature || '';
+
+        qs('#account').value = username;
+        qs('#email').value = email;
+        qs('#session-ts').value = fmtTs(session && session.ts);
+
+        const reflectPrivacy = () => {
+            document.body.classList.toggle('privacy-on', !!settings.privacy);
+            setStatusUI(profile.status_emoji, profile.status);
+        };
+
+        const persistSettings = () => {
+            writeJson(SETTINGS_KEY, settings);
+            writeJson(UI_SETTINGS_KEY, uiSettings);
+            reflectPrivacy();
+        };
+
+        bindToggle('#t-notify', settings, 'notify', persistSettings);
+        bindToggle('#t-sound', settings, 'sound', persistSettings);
+        bindToggle('#t-cursorfx', uiSettings, 'cursor_fx', persistSettings);
+        bindToggle('#t-bg-motion', uiSettings, 'bg_motion', persistSettings);
+        bindToggle('#t-privacy', settings, 'privacy', persistSettings);
+        bindToggle('#t-hideuid', settings, 'hide_uid', persistSettings);
+        bindToggle('#t-notifypreview', settings, 'notify_preview', persistSettings);
+
+        // TURN settings
+        const turnUrls = qs('#turn-urls');
+        const turnUser = qs('#turn-user');
+        const turnPass = qs('#turn-pass');
+        if (turnUrls) turnUrls.value = turnCfg.urls || '';
+        if (turnUser) turnUser.value = turnCfg.username || '';
+        if (turnPass) turnPass.value = turnCfg.credential || '';
+
+        qs('#btn-turn-save')?.addEventListener('click', () => {
+            const cfg = {
+                urls: String(turnUrls && turnUrls.value || '').trim(),
+                username: String(turnUser && turnUser.value || '').trim(),
+                credential: String(turnPass && turnPass.value || '').trim()
+            };
+            writeJson(TURN_KEY, cfg);
+            toast('已保存 TURN 配置');
+        });
+
+        qs('#btn-turn-clear')?.addEventListener('click', () => {
+            writeJson(TURN_KEY, { urls: '', username: '', credential: '' });
+            if (turnUrls) turnUrls.value = '';
+            if (turnUser) turnUser.value = '';
+            if (turnPass) turnPass.value = '';
+            toast('已清除 TURN 配置');
+        });
+
+        reflectPrivacy();
+
+        qsa('.tab').forEach((t) => {
+            t.addEventListener('click', () => switchTab(t.getAttribute('data-tab')));
+        });
+
+        // Back: respect previous page marker if present
+        try {
+            const from = sessionStorage.getItem('qbe.from');
+            if (from) qs('#btn-back').setAttribute('href', from);
+        } catch (_) {}
+
+        qs('#btn-save').addEventListener('click', () => {
+            // status is selected by popup
+            profile.signature = (qs('#signature').value || '').trim();
+            writeJson(PROFILE_KEY, profile);
+            // settings are persisted on toggle
+
+            qs('#p-name').textContent = username;
+            setStatusUI(profile.status_emoji, profile.status);
+            qs('#p-avatar').textContent = username.slice(0, 1).toUpperCase();
+            alert('已保存到本机浏览器');
+        });
+
+        qs('#btn-logout').addEventListener('click', () => {
+            try { localStorage.removeItem(SESSION_KEY); } catch (_) {}
+            window.location.href = 'login.html';
+        });
+    </script>
+    <link rel="stylesheet" href="qbe_cursor.css">
+    <link rel="stylesheet" href="qbe_ocean.css">
+    <script src="qbe_cursor.js" defer></script>
+    <script src="qbe_ocean.js" defer></script>
+</body>
+</html>

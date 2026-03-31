@@ -1,0 +1,160 @@
+:root {
+  --ocean-deep: #06101b;
+  --ocean-mid: #0b2a3a;
+  --ocean-teal: #1aa384;
+  --ocean-sky: #44b4ff;
+}
+
+html.bg-motion-on, html.bg-motion-on body {
+  background: transparent !important;
+}
+
+#qbe-ocean {
+  position: fixed;
+  inset: 0;
+  z-index: -5;
+  pointer-events: none;
+  overflow: hidden;
+
+  background:
+    radial-gradient(1200px 760px at 12% 18%, rgba(26, 163, 132, 0.28), transparent 62%),
+    radial-gradient(980px 660px at 82% 14%, rgba(68, 180, 255, 0.20), transparent 58%),
+    radial-gradient(1000px 820px at 70% 92%, rgba(26, 163, 132, 0.16), transparent 62%),
+    linear-gradient(180deg, var(--ocean-deep), var(--ocean-mid));
+}
+
+/* Caustics-like shimmer */
+#qbe-ocean::before {
+  content: '';
+  position: absolute;
+  inset: -22%;
+  opacity: 0.26;
+  background:
+    radial-gradient(closest-side at 18% 22%, rgba(255, 255, 255, 0.18), rgba(255,255,255,0.00) 62%),
+    radial-gradient(closest-side at 72% 34%, rgba(255, 255, 255, 0.14), rgba(255,255,255,0.00) 64%),
+    radial-gradient(closest-side at 46% 66%, rgba(255, 255, 255, 0.10), rgba(255,255,255,0.00) 66%),
+    repeating-radial-gradient(circle at 20% 20%, rgba(255,255,255,0.10) 0 10px, rgba(255,255,255,0.00) 10px 24px);
+  filter: blur(12px);
+  mix-blend-mode: overlay;
+  animation: qbe_caustics 22s ease-in-out infinite;
+}
+
+/* Slow wave drift layer */
+#qbe-ocean::after {
+  content: '';
+  position: absolute;
+  inset: -18%;
+  opacity: 0.30;
+  background:
+    radial-gradient(900px 320px at 10% 84%, rgba(68, 180, 255, 0.20), transparent 60%),
+    radial-gradient(780px 280px at 64% 78%, rgba(26, 163, 132, 0.22), transparent 62%),
+    radial-gradient(840px 300px at 92% 88%, rgba(68, 180, 255, 0.16), transparent 62%),
+    repeating-linear-gradient(
+      120deg,
+      rgba(255,255,255,0.10) 0 12px,
+      rgba(255,255,255,0.00) 12px 42px
+    );
+  filter: blur(10px);
+  mix-blend-mode: soft-light;
+  animation: qbe_waves 28s linear infinite;
+}
+
+/* More visible wave bands near the top */
+.qbe-ocean-band {
+  position: absolute;
+  left: -12%;
+  right: -12%;
+  top: -10%;
+  height: 46%;
+  opacity: 0.62;
+  filter: blur(2.5px);
+  mix-blend-mode: screen;
+  background:
+    radial-gradient(920px 340px at 18% 44%, rgba(68, 180, 255, 0.22), transparent 62%),
+    radial-gradient(860px 320px at 72% 48%, rgba(26, 163, 132, 0.20), transparent 64%),
+    url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MDAiIGhlaWdodD0iMTYwIiB2aWV3Qm94PSIwIDAgODAwIDE2MCI+CiAgPGcgZmlsbD0ibm9uZSI+CiAgICA8cGF0aCBkPSJNMCA2MCBDIDgwIDQwLCAxNjAgODAsIDI0MCA2MCBTIDQwMCA4MCwgNDgwIDYwIFMgNjQwIDgwLCA3MjAgNjAgUyA4ODAgODAsIDk2MCA2MCIgc3Ryb2tlPSIjNDRiNGZmIiBzdHJva2Utb3BhY2l0eT0iMC40NSIgc3Ryb2tlLXdpZHRoPSIzIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz4KICAgIDxwYXRoIGQ9Ik0wIDg2IEMgNzAgNzAsIDE3MCAxMDIsIDI2MCA4NiBTIDQyMCAxMDIsIDUyMCA4NiBTIDY3MCAxMDIsIDc2MCA4NiBTIDkzMCAxMDIsIDEwMjAgODYiIHN0cm9rZT0iI2E5ZjZlNyIgc3Ryb2tlLW9wYWNpdHk9IjAuMjYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+CiAgICA8cGF0aCBkPSJNMCAxMTAgQyA5MCA5OCwgMTgwIDEyMiwgMjcwIDExMCBTIDQzMCAxMjIsIDUyMCAxMTAgUyA2OTAgMTIyLCA3ODAgMTEwIFMgOTYwIDEyMiwgMTA1MCAxMTAiIHN0cm9rZT0iIzQ0YjRmZiIgc3Ryb2tlLW9wYWNpdHk9IjAuMjAiIHN0cm9rZS13aWR0aD0iMS41IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz4KICA8L2c+Cjwvc3ZnPg==");
+  background-repeat: no-repeat, no-repeat, repeat;
+  /* Keep the wave tile size consistent with its SVG viewBox for seamless looping */
+  background-size: auto, auto, 800px 160px;
+  background-position: 0 0, 0 0, 0 0;
+  transform: translate3d(0, 0, 0);
+  will-change: background-position;
+  animation: qbe_band 16s linear infinite;
+  -webkit-mask-image: linear-gradient(180deg, rgba(0,0,0,1.00), rgba(0,0,0,0.78) 55%, rgba(0,0,0,0.00) 100%);
+  mask-image: linear-gradient(180deg, rgba(0,0,0,1.00), rgba(0,0,0,0.78) 55%, rgba(0,0,0,0.00) 100%);
+}
+
+/* Slide the wave texture horizontally */
+@keyframes qbe_band {
+  0% {
+    background-position: 0 0, 0 0, 0 0;
+  }
+  100% {
+    /* Move exactly one full tile width: seamless loop */
+    background-position: 0 0, 0 0, -800px 0;
+  }
+}
+
+/* Bubbles: lightweight particle illusion via layered gradients */
+.qbe-ocean-bubbles {
+  position: absolute;
+  inset: -12% -12% -12% -12%;
+  pointer-events: none;
+  opacity: 0.20;
+  filter: blur(0.4px);
+  transform: translate3d(0, 0, 0);
+  will-change: transform;
+}
+
+.qbe-ocean-bubbles.qbe-b1 {
+  background-image:
+    radial-gradient(circle at 12% 88%, rgba(255,255,255,0.34) 0 2px, rgba(255,255,255,0.00) 6px),
+    radial-gradient(circle at 22% 92%, rgba(255,255,255,0.26) 0 1.5px, rgba(255,255,255,0.00) 5px),
+    radial-gradient(circle at 35% 86%, rgba(255,255,255,0.28) 0 2px, rgba(255,255,255,0.00) 7px),
+    radial-gradient(circle at 48% 90%, rgba(255,255,255,0.22) 0 1.4px, rgba(255,255,255,0.00) 5.8px),
+    radial-gradient(circle at 64% 94%, rgba(255,255,255,0.30) 0 2.1px, rgba(255,255,255,0.00) 7px),
+    radial-gradient(circle at 78% 88%, rgba(255,255,255,0.26) 0 1.8px, rgba(255,255,255,0.00) 6.3px),
+    radial-gradient(circle at 90% 92%, rgba(255,255,255,0.22) 0 1.3px, rgba(255,255,255,0.00) 5.4px);
+  animation: qbe_bubbles_up 28s linear infinite;
+}
+
+.qbe-ocean-bubbles.qbe-b2 {
+  opacity: 0.14;
+  background-image:
+    radial-gradient(circle at 16% 96%, rgba(255,255,255,0.22) 0 1.2px, rgba(255,255,255,0.00) 4.6px),
+    radial-gradient(circle at 28% 98%, rgba(255,255,255,0.18) 0 1.0px, rgba(255,255,255,0.00) 4.2px),
+    radial-gradient(circle at 44% 95%, rgba(255,255,255,0.20) 0 1.1px, rgba(255,255,255,0.00) 4.4px),
+    radial-gradient(circle at 58% 97%, rgba(255,255,255,0.18) 0 1.0px, rgba(255,255,255,0.00) 4.1px),
+    radial-gradient(circle at 72% 95%, rgba(255,255,255,0.20) 0 1.1px, rgba(255,255,255,0.00) 4.5px),
+    radial-gradient(circle at 86% 98%, rgba(255,255,255,0.16) 0 0.9px, rgba(255,255,255,0.00) 4.0px);
+  animation: qbe_bubbles_up 36s linear infinite;
+  animation-delay: -9s;
+}
+
+@keyframes qbe_bubbles_up {
+  0% { transform: translate3d(0, 8%, 0); }
+  100% { transform: translate3d(-1.5%, -10%, 0); }
+}
+
+@keyframes qbe_caustics {
+  0% { transform: translate3d(0, 0, 0) rotate(0deg) scale(1.0); }
+  35% { transform: translate3d(2.5%, -1.5%, 0) rotate(2.5deg) scale(1.02); }
+  70% { transform: translate3d(-2.0%, 1.2%, 0) rotate(-1.8deg) scale(1.01); }
+  100% { transform: translate3d(0, 0, 0) rotate(0deg) scale(1.0); }
+}
+
+@keyframes qbe_waves {
+  0% { transform: translate3d(0, 0, 0); }
+  100% { transform: translate3d(-6%, 3%, 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #qbe-ocean::before,
+  #qbe-ocean::after {
+    animation: none !important;
+  }
+  .qbe-ocean-band,
+  .qbe-ocean-bubbles {
+    animation: none !important;
+  }
+}

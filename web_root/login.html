@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QBE - 登录 / 注册</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" referrerpolicy="no-referrer">
+    <script>
+      (function () {
+        try {
+          var raw = localStorage.getItem('qbe.ui.settings');
+          var s = raw ? JSON.parse(raw) : null;
+          if (!s) return;
+          var root = document.documentElement;
+          if (s.cursor_fx) root.classList.add('cursor-fx-on');
+          if (s.bg_motion) root.classList.add('bg-motion-on');
+        } catch (_) {}
+      })();
+    </script>
+    <style>
+        /* Custom cursor is provided by qbe_cursor.css */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg0: #0b1220;
+            --bg1: #0f1a2f;
+            --text: #101828;
+            --muted: #475467;
+            --brand: #1d9b78;
+            --brand2: #0ea66a;
+            --ring: rgba(29, 155, 120, 0.35);
+            --border: rgba(16, 24, 40, 0.12);
+            --radius: 16px;
+            --shadow: 0 18px 55px rgba(16, 24, 40, 0.24);
+        }
+
+        body {
+            font-family: 'Manrope', system-ui, -apple-system, 'Segoe UI', Tahoma, Arial, sans-serif;
+            min-height: 100vh;
+            color: var(--text);
+            background:
+                radial-gradient(1200px 800px at 12% 10%, rgba(29, 155, 120, 0.24), transparent 58%),
+                radial-gradient(900px 600px at 86% 18%, rgba(56, 189, 248, 0.18), transparent 55%),
+                radial-gradient(900px 700px at 70% 90%, rgba(34, 197, 94, 0.14), transparent 60%),
+                linear-gradient(180deg, var(--bg0), var(--bg1));
+        }
+
+        a { color: inherit; }
+
+        .shell {
+            min-height: 100vh;
+            display: grid;
+            place-items: center;
+            padding: 2.2rem 1.2rem;
+        }
+
+        .card {
+            width: min(980px, 100%);
+            border-radius: 22px;
+            background: rgba(255, 255, 255, 0.92);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            display: grid;
+            grid-template-columns: 1.05fr 0.95fr;
+        }
+
+        .left {
+            padding: 2.2rem 2rem;
+            background:
+                radial-gradient(1000px 420px at 30% 0%, rgba(29, 155, 120, 0.14), transparent 60%),
+                linear-gradient(180deg, rgba(16, 24, 40, 0.02), rgba(16, 24, 40, 0.00));
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            margin-bottom: 1.2rem;
+        }
+
+        .badge {
+            width: 44px;
+            height: 44px;
+            border-radius: 14px;
+            display: grid;
+            place-items: center;
+            background: rgba(29, 155, 120, 0.12);
+            border: 1px solid rgba(29, 155, 120, 0.16);
+        }
+
+        .brand h1 {
+            font-size: 1.25rem;
+            letter-spacing: 0.2px;
+        }
+
+        .brand p {
+            color: var(--muted);
+            font-size: 0.9rem;
+            margin-top: 0.15rem;
+        }
+
+        .features {
+            display: grid;
+            gap: 0.75rem;
+            margin-top: 1.2rem;
+            color: #344054;
+        }
+
+        .feature {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.7rem;
+            padding: 0.85rem 0.9rem;
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.7);
+            border: 1px solid rgba(16, 24, 40, 0.08);
+        }
+
+        .feature i {
+            margin-top: 2px;
+            color: #0f766e;
+        }
+
+        .feature strong {
+            display: block;
+            font-size: 0.95rem;
+            margin-bottom: 0.1rem;
+        }
+
+        .feature span {
+            display: block;
+            color: #667085;
+            font-size: 0.88rem;
+            line-height: 1.35;
+        }
+
+        .right {
+            padding: 2.2rem 2rem;
+            background: rgba(255, 255, 255, 0.86);
+            border-left: 1px solid rgba(16, 24, 40, 0.08);
+        }
+
+        .tabs {
+            display: inline-flex;
+            padding: 0.3rem;
+            border-radius: 999px;
+            background: rgba(16, 24, 40, 0.04);
+            border: 1px solid rgba(16, 24, 40, 0.08);
+            gap: 0.25rem;
+            margin-bottom: 1.2rem;
+        }
+
+        .tab {
+            border: none;
+            cursor: pointer;
+            padding: 0.55rem 0.9rem;
+            border-radius: 999px;
+            background: transparent;
+            font-weight: 800;
+            color: #667085;
+            transition: background 0.15s ease, color 0.15s ease;
+        }
+
+        .tab.active {
+            background: linear-gradient(135deg, rgba(29, 155, 120, 0.95), rgba(14, 166, 106, 0.88));
+            color: white;
+        }
+
+        .panel { display: none; }
+        .panel.active { display: block; }
+
+        .title {
+            margin-bottom: 1rem;
+        }
+
+        .title h2 {
+            font-size: 1.25rem;
+            margin-bottom: 0.35rem;
+            color: #0b3a33;
+        }
+
+        .title p {
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
+
+        .field {
+            margin-bottom: 0.85rem;
+        }
+
+        label {
+            display: block;
+            font-weight: 800;
+            font-size: 0.88rem;
+            color: #344054;
+            margin-bottom: 0.35rem;
+        }
+
+        input {
+            width: 100%;
+            padding: 0.85rem 0.95rem;
+            border-radius: 14px;
+            border: 1px solid rgba(16, 24, 40, 0.16);
+            background: rgba(255, 255, 255, 0.92);
+            outline: none;
+            transition: box-shadow 0.15s ease, border-color 0.15s ease;
+            font-size: 1rem;
+        }
+
+        input:focus {
+            border-color: rgba(29, 155, 120, 0.72);
+            box-shadow: 0 0 0 4px var(--ring);
+        }
+
+        .row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+        }
+
+        .actions {
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+            margin-top: 1.1rem;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            border: none;
+            cursor: pointer;
+            padding: 0.85rem 1rem;
+            border-radius: 14px;
+            background: linear-gradient(135deg, var(--brand), var(--brand2));
+            color: white;
+            font-weight: 900;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.6rem;
+            transition: transform 0.15s ease, filter 0.15s ease;
+        }
+
+        .btn:active { transform: scale(0.98); }
+
+        .btn.secondary {
+            background: rgba(255,255,255,0.92);
+            color: #0f766e;
+            border: 1px solid rgba(29,155,120,0.35);
+        }
+
+        .hint {
+            font-size: 0.86rem;
+            color: #667085;
+        }
+
+        .toast {
+            position: fixed;
+            left: 50%;
+            bottom: 22px;
+            transform: translateX(-50%);
+            background: rgba(16, 24, 40, 0.92);
+            color: rgba(255,255,255,0.92);
+            padding: 0.8rem 1rem;
+            border-radius: 999px;
+            border: 1px solid rgba(255,255,255,0.16);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.30);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.18s ease, transform 0.18s ease;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(-6px);
+        }
+
+
+        @media (max-width: 900px) {
+            .card { grid-template-columns: 1fr; }
+            .right { border-left: none; border-top: 1px solid rgba(16, 24, 40, 0.08); }
+            .row { grid-template-columns: 1fr; }
+        }
+    </style>
+  </head>
+<body>
+    <div class="shell">
+        <div class="card" role="main">
+            <div class="left">
+                <div class="brand">
+                    <div class="badge" aria-hidden="true"><i class="fa-solid fa-bolt"></i></div>
+                    <div>
+                        <h1>QBE</h1>
+                        <p>登录后开启更顺滑的沟通体验</p>
+                    </div>
+                </div>
+
+                <div class="features">
+                    <div class="feature"><i class="fa-solid fa-shield-halved"></i><div><strong>更安全</strong><span>基于会话的本地登录示例，可按需接入后端。</span></div></div>
+                    <div class="feature"><i class="fa-solid fa-bolt"></i><div><strong>更高效</strong><span>登录后返回首页，常用功能面板显示当前用户。</span></div></div>
+                    <div class="feature"><i class="fa-solid fa-layer-group"></i><div><strong>更清爽</strong><span>首页不再堆输入框，表单集中到单独页面。</span></div></div>
+                </div>
+            </div>
+
+            <div class="right">
+                <div class="tabs" role="tablist" aria-label="登录注册切换">
+                    <button class="tab" id="tab-login" type="button" role="tab" aria-controls="panel-login">登录</button>
+                    <button class="tab" id="tab-register" type="button" role="tab" aria-controls="panel-register">注册</button>
+                </div>
+
+                <section class="panel" id="panel-login" role="tabpanel" aria-labelledby="tab-login">
+                    <div class="title">
+                        <h2>欢迎回来</h2>
+                        <p>使用邮箱登录</p>
+                    </div>
+
+                    <div class="field">
+                        <label for="login-email">邮箱</label>
+                        <input id="login-email" type="email" autocomplete="email" placeholder="name@example.com" inputmode="email" maxlength="128" autocapitalize="none" autocorrect="off" spellcheck="false">
+                    </div>
+                    <div class="field">
+                        <label for="login-password">密码</label>
+                        <input id="login-password" type="password" autocomplete="current-password" placeholder="输入密码">
+                    </div>
+
+                    <div class="actions">
+                        <button class="btn" id="btn-login" type="button"><i class="fa-solid fa-right-to-bracket"></i>登录并进入聊天</button>
+                        <a class="btn secondary" href="web.html" style="text-decoration:none;"><i class="fa-solid fa-arrow-left"></i>返回首页</a>
+                        <span class="hint">将调用后端接口：/api/login</span>
+                    </div>
+                </section>
+
+                <section class="panel" id="panel-register" role="tabpanel" aria-labelledby="tab-register">
+                    <div class="title">
+                        <h2>创建账号</h2>
+                        <p>注册完成后自动登录并返回首页</p>
+                    </div>
+
+                    <div class="row">
+                        <div class="field">
+                            <label for="reg-username">用户名</label>
+                            <input id="reg-username" type="text" autocomplete="username" placeholder="例如：qbe_user">
+                        </div>
+                        <div class="field">
+                            <label for="reg-email">邮箱</label>
+                             <input id="reg-email" type="email" autocomplete="email" placeholder="name@example.com" inputmode="email" maxlength="128" autocapitalize="none" autocorrect="off" spellcheck="false">
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="field">
+                            <label for="reg-password">密码</label>
+                            <input id="reg-password" type="password" autocomplete="new-password" placeholder="至少 6 位">
+                        </div>
+                        <div class="field">
+                            <label for="reg-confirm">确认密码</label>
+                            <input id="reg-confirm" type="password" autocomplete="new-password" placeholder="再次输入密码">
+                        </div>
+                    </div>
+
+                    <div class="actions">
+                        <button class="btn" id="btn-register" type="button"><i class="fa-solid fa-user-plus"></i>注册并返回首页</button>
+                        <a class="btn secondary" href="web.html" style="text-decoration:none;"><i class="fa-solid fa-arrow-left"></i>返回首页</a>
+                        <span class="hint">将调用后端接口：/api/register</span>
+                    </div>
+                </section>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <script>
+        const SESSION_KEY = 'qbe.session';
+
+        function qs(id) { return document.getElementById(id); }
+
+        function toast(msg) {
+            const t = qs('toast');
+            t.textContent = msg;
+            t.classList.add('show');
+            window.clearTimeout(toast._timer);
+            toast._timer = window.setTimeout(() => t.classList.remove('show'), 2000);
+        }
+
+        function saveSession(session) {
+            try { localStorage.setItem(SESSION_KEY, JSON.stringify(session)); } catch (_) {}
+        }
+
+        function switchTab(which) {
+            const isLogin = which === 'login';
+            qs('tab-login').classList.toggle('active', isLogin);
+            qs('tab-register').classList.toggle('active', !isLogin);
+            qs('panel-login').classList.toggle('active', isLogin);
+            qs('panel-register').classList.toggle('active', !isLogin);
+            qs('tab-login').setAttribute('aria-selected', isLogin ? 'true' : 'false');
+            qs('tab-register').setAttribute('aria-selected', !isLogin ? 'true' : 'false');
+            history.replaceState(null, '', isLogin ? '#login' : '#register');
+        }
+
+        function initFromHash() {
+            const h = (location.hash || '').toLowerCase();
+            if (h === '#register') switchTab('register');
+            else switchTab('login');
+        }
+
+        qs('tab-login').addEventListener('click', () => switchTab('login'));
+        qs('tab-register').addEventListener('click', () => switchTab('register'));
+
+        window.addEventListener('hashchange', initFromHash);
+
+        function isValidEmail(s) {
+            const v = String(s || '').trim();
+            if (!v) return false;
+            if (v.length > 128) return false;
+            const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return re.test(v);
+        }
+
+        function syncEmailGuards() {
+            const le = (qs('login-email').value || '').trim();
+            const loginOk = isValidEmail(le);
+            qs('login-password').disabled = !loginOk;
+            qs('btn-login').disabled = !loginOk;
+
+            const re = (qs('reg-email').value || '').trim();
+            const regOk = isValidEmail(re);
+            qs('reg-password').disabled = !regOk;
+            qs('reg-confirm').disabled = !regOk;
+            qs('btn-register').disabled = !regOk;
+        }
+
+        async function postJson(url, data) {
+            const res = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            let json = null;
+            try { json = await res.json(); } catch (_) {}
+            return { ok: res.ok, status: res.status, json };
+        }
+
+        qs('btn-login').addEventListener('click', async () => {
+            const email = (qs('login-email').value || '').trim();
+            const password = (qs('login-password').value || '').trim();
+            if (!email) return toast('请输入邮箱');
+            if (!isValidEmail(email)) return toast('邮箱格式不正确');
+            if (!password) return toast('请输入密码');
+
+            const { ok, json } = await postJson('/api/login', { email, password });
+            if (!ok || !json || json.ok !== true) {
+                return toast((json && json.error) ? json.error : '登录失败');
+            }
+
+            saveSession({ username: json.username || json.name || email, uid: json.uid, email, ts: Date.now() });
+            toast('登录成功，正在进入聊天...');
+            window.setTimeout(() => { window.location.href = 'client_connect.html'; }, 600);
+        });
+
+        qs('btn-register').addEventListener('click', async () => {
+            const username = (qs('reg-username').value || '').trim();
+            const email = (qs('reg-email').value || '').trim();
+            const p1 = (qs('reg-password').value || '').trim();
+            const p2 = (qs('reg-confirm').value || '').trim();
+
+            if (!username) return toast('请输入用户名');
+            if (!email) return toast('请输入邮箱');
+            if (!isValidEmail(email)) return toast('邮箱格式不正确');
+            if (p1.length < 6) return toast('密码至少 6 位');
+            if (p1 !== p2) return toast('两次密码不一致');
+
+            const { ok, json } = await postJson('/api/register', { username, email, password: p1 });
+            if (!ok || !json || json.ok !== true) {
+                return toast((json && json.error) ? json.error : '注册失败');
+            }
+
+            const lr = await postJson('/api/login', { email, password: p1 });
+            if (lr.ok && lr.json && lr.json.ok === true) {
+                saveSession({ username: lr.json.username || lr.json.name || username, uid: lr.json.uid, email, ts: Date.now() });
+            } else {
+                saveSession({ username, email, ts: Date.now() });
+            }
+            toast('注册成功，正在进入聊天...');
+            window.setTimeout(() => { window.location.href = 'client_connect.html'; }, 700);
+        });
+
+        // Email validation first: before email is valid, do not allow typing password.
+        if (qs('login-email')) qs('login-email').addEventListener('input', syncEmailGuards);
+        qs('reg-email').addEventListener('input', syncEmailGuards);
+        if (qs('login-email')) qs('login-email').addEventListener('blur', () => {
+            const v = (qs('login-email').value || '').trim();
+            if (v && !isValidEmail(v)) toast('邮箱格式不正确');
+        });
+        qs('reg-email').addEventListener('blur', () => {
+            const v = (qs('reg-email').value || '').trim();
+            if (v && !isValidEmail(v)) toast('邮箱格式不正确');
+        });
+        qs('login-password').addEventListener('focus', () => {
+            const v = (qs('login-email').value || '').trim();
+            if (!isValidEmail(v)) toast('请先输入正确的邮箱');
+        });
+        qs('reg-password').addEventListener('focus', () => {
+            const v = (qs('reg-email').value || '').trim();
+            if (!isValidEmail(v)) toast('请先输入正确的邮箱');
+        });
+        qs('reg-confirm').addEventListener('focus', () => {
+            const v = (qs('reg-email').value || '').trim();
+            if (!isValidEmail(v)) toast('请先输入正确的邮箱');
+        });
+        syncEmailGuards();
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                const isLogin = qs('panel-login').classList.contains('active');
+                if (isLogin) qs('btn-login').click();
+                else qs('btn-register').click();
+            }
+        });
+
+        initFromHash();
+
+
+</script>
+</body>
+</html>
+    <link rel="stylesheet" href="qbe_cursor.css">
+    <script src="qbe_cursor.js" defer></script>
+    <script src="qbe_ocean.js" defer></script>
+    <link rel="stylesheet" href="qbe_ocean.css">
