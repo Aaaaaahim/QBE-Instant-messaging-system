@@ -40,7 +40,7 @@ QBE 是一款高性能、轻量级的 B/S 架构即时通讯（IM）系统。后
 
 ## 项目结构概览
 
-`	ext
+```text
 /BS_web_connect
 ├── main.cpp                # HTTP 服务器核心逻辑
 ├── sql.cpp / sql.h         # 用户状态机与数据库抽象层
@@ -50,7 +50,7 @@ QBE 是一款高性能、轻量级的 B/S 架构即时通讯（IM）系统。后
 │   ├── client_connect.js   # 核心逻辑 (RTC/轮询/状态)
 │   └── uploads/            # 媒体文件存取区 (请勿纳入版本控制)
 └── TURN_SETUP.txt          # WebRTC 服务端配置手册
-`
+```
 
 ---
 
