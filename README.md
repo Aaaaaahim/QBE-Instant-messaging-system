@@ -4,7 +4,7 @@ QBE 是一款高性能、轻量级的 B/S 架构即时通讯（IM）系统。后
 
 ---
 
-## ⚠️ 安全指南 (提交前必读)
+## ⚠️ 安全指南 
 
 为了确保数据安全性，我们已经彻底剥离了所有硬编码敏感信息。在生产环境部署时，请严格遵守以下规则：
 
@@ -73,14 +73,6 @@ export QBE_DB_PASS="your_secure_password"
 | 消息 | /api/send_message, /api/send_group_message |
 | 实时同步 | /api/poll_events |
 | WebRTC | /api/rtc_offer, /api/rtc_answer, /api/rtc_ice |
-
----
-
-## 安全核对清单
-
-- [ ] .gitignore 是否已忽略 user_db.tsv, *.exe, .vscode/, *.log?
-- [ ] 代码中是否已完全移除真实 IP 和固定密码？
-- [ ] 环境变量逻辑是否已生效？
 
 ---
 
