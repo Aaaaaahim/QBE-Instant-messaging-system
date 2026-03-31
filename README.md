@@ -4,6 +4,16 @@ QBE 是一款高性能、轻量级的 B/S 架构即时通讯（IM）系统。后
 
 ---
 
+## 快速入口 - 索引 (Index)
+
+- [中文版目录 (Chinese Directory)]
+- [安全指南 (Security Guide)](#⚠️安全指南)
+- [核心架构 (Core Architecture)](#核心技术特性)
+- [部署与构建 (Deployment)](#部署与构建指南)
+- [REST API 概览 (API Overview)](#REST-API-概览)
+
+---
+
 ## ⚠️ 安全指南 
 
 为了确保数据安全性，我们已经彻底剥离了所有硬编码敏感信息。在生产环境部署时，请严格遵守以下规则：
@@ -55,11 +65,11 @@ QBE 是一款高性能、轻量级的 B/S 架构即时通讯（IM）系统。后
 - user_db.tsv (首次注册自动生成)
 
 ### 3. 环境变量配置示例 (Linux)
-`ash
+```bash
 export QBE_DB_USER="your_db_user"
 export QBE_DB_PASS="your_secure_password"
 ./qbe_server
-`
+```
 
 ---
 
@@ -104,22 +114,12 @@ QBE is a high-performance, lightweight B/S architecture Instant Messaging (IM) s
 * **Linux**: GCC 9+ or Clang 10+ with C++17 support.
 
 ### 2. Quick Start (Linux)
-`ash
+```bash
 g++ -std=c++17 -O2 -pthread main.cpp sql.cpp threadpool.cpp mongoose.c -o qbe_server
 export QBE_DB_USER="your_db_user"
 export QBE_DB_PASS="your_secure_password"
 ./qbe_server
-`
-
----
-
-## 快速入口 - 索引 (Index)
-
-- [中文版目录 (Chinese Directory)](#目录)
-- [安全指南 (Security Guide)](#⚠️-安全指南-提交前必读)
-- [核心架构 (Core Architecture)](#核心架构)
-- [部署与构建 (Deployment)](#部署与构建指南)
-- [REST API 概览 (API Overview)](#rest-api-概览)
+```
 
 ---
 
